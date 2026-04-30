@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0B0B0B;
+  --foreground: #FFFFFF;
+  --card-bg: #161616;
+  --accent: #FF4D4D;
+  --accent-orange: #FF8C00;
+  --muted: #737373;
+  --border: #262626;
+  --success: #4ADE80;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] {
+  --background: #F8F9FA;
+  --foreground: #1A1A1A;
+  --card-bg: #FFFFFF;
+  --accent: #FF4D4D;
+  --accent-orange: #FF8C00;
+  --muted: #6C757D;
+  --border: #E9ECEF;
+  --success: #059669;
+  --shadow-color: rgba(0, 0, 0, 0.05);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card-bg);
+  --color-accent: var(--accent);
+  --color-accent-orange: var(--accent-orange);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  
+  --radius-2xl: 20px;
+  --radius-xl: 16px;
+  --radius-lg: 12px;
+  
+  --shadow-premium: 0 20px 40px -15px var(--shadow-color);
+  --shadow-accent-glow: 0 10px 20px -5px rgba(255, 77, 77, 0.2);
+}
+
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .glass {
+    background: rgba(22, 22, 22, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}
