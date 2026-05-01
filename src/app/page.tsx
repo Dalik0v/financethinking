@@ -87,12 +87,12 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Quick Actions */}
+{/* Quick Actions */}
       <section className="px-6">
         <div className="grid grid-cols-4 gap-4">
           <ActionButton href="/transactions" icon={<Plus />} label="Add" />
-          <ActionButton href="/transfer" icon={<ArrowUpRight />} label="Send" />
-          <ActionButton href="/transactions" icon={<ArrowDownRight />} label="Request" />
+          <ActionButton href="/create-goal" icon={<ArrowUpRight />} label="Goals" />
+          <ActionButton href="/analytics" icon={<ArrowDownRight />} label="Insights" />
           <ActionButton href="/settings" icon={<LayoutGrid />} label="More" />
         </div>
       </section>

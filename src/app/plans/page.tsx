@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Target, PiggyBank, Briefcase, TrendingUp } from "lucide-react";
 import AiTipCard from "@/components/plans/AiTipCard";
 import PlanCard from "@/components/plans/PlanCard";
 import FloatingAddButton from "@/components/plans/FloatingAddButton";
+import { useRouter } from "next/navigation";
 
 interface Plan {
   id: string;
@@ -13,7 +14,31 @@ interface Plan {
   saved: number;
   icon: React.ReactNode;
   color: string;
+  category?: string;
+  deadline?: string;
 }
+
+const CATEGORY_ICONS: Record<string, any> = {
+  Car: <Briefcase size={20} />,
+  Home: <Briefcase size={20} />,
+  Travel: <Briefcase size={20} />,
+  Education: <Briefcase size={20} />,
+  Health: <Briefcase size={20} />,
+  Tech: <Briefcase size={20} />,
+  Gift: <Briefcase size={20} />,
+  Other: <Briefcase size={20} />,
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  Car: "text-blue-400",
+  Home: "text-green-400",
+  Travel: "text-purple-400",
+  Education: "text-yellow-400",
+  Health: "text-red-400",
+  Tech: "text-gray-400",
+  Gift: "text-pink-400",
+  Other: "text-primary",
+};
 
 const INITIAL_PLANS: Plan[] = [
   { id: "1", title: "New Car", goal: 45000, saved: 12400, icon: <Briefcase size={20} />, color: "text-blue-400" },
@@ -22,18 +47,52 @@ const INITIAL_PLANS: Plan[] = [
 ];
 
 export default function Plans() {
+  const router = useRouter();
   const [plans, setPlans] = useState<Plan[]>(INITIAL_PLANS);
   const [isAddPlanOpen, setIsAddPlanOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [savingsAmount, setSavingsAmount] = useState("");
 
+  // Load goals from localStorage on mount
+  useEffect(() => {
+    const storedGoals = localStorage.getItem("goals");
+    if (storedGoals) {
+      const goals = JSON.parse(storedGoals);
+      const mappedPlans = goals.map((g: any) => ({
+        id: g.id,
+        title: g.name,
+        goal: g.targetAmount,
+        saved: g.saved,
+        icon: CATEGORY_ICONS[g.category] || CATEGORY_ICONS.Other,
+        color: CATEGORY_COLORS[g.category] || CATEGORY_COLORS.Other,
+        category: g.category,
+        deadline: g.deadline,
+      }));
+      
+      if (mappedPlans.length > 0) {
+        setPlans(prev => [...prev, ...mappedPlans]);
+      }
+    }
+  }, []);
+
   const handleAddSavings = () => {
     const amount = parseFloat(savingsAmount);
     if (isNaN(amount) || amount <= 0 || !selectedPlanId) return;
 
-    setPlans(plans.map(p => 
+    // Update local state
+    const updatedPlans = plans.map(p => 
       p.id === selectedPlanId ? { ...p, saved: Math.min(p.goal, p.saved + amount) } : p
-    ));
+    );
+    setPlans(updatedPlans);
+    
+    // Update localStorage - find the goal by ID
+const storedGoals = JSON.parse(localStorage.getItem("goals") || "[]");
+    const goalIndex = storedGoals.findIndex((g: any) => g.id === selectedPlanId);
+    if (goalIndex >= 0) {
+      storedGoals[goalIndex].saved = Math.min(storedGoals[goalIndex].targetAmount, storedGoals[goalIndex].saved + amount);
+      localStorage.setItem("goals", JSON.stringify(storedGoals));
+    }
+
     setSelectedPlanId(null);
     setSavingsAmount("");
   };
@@ -50,7 +109,7 @@ export default function Plans() {
           <h1 className="text-3xl font-bold tracking-tight mb-2">My Plans</h1>
           <p className="text-muted text-sm font-medium">Save for your future goals</p>
         </div>
-        <FloatingAddButton onClick={() => setIsAddPlanOpen(true)} />
+        <FloatingAddButton onClick={() => router.push("/create-goal")} />
       </header>
 
       {/* Collapsible AI Tip - Default Collapsed */}
