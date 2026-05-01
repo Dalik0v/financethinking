@@ -15,11 +15,13 @@ interface Plan {
 interface PlanCardProps {
   plan: Plan;
   onClick?: () => void;
+  onDelete?: (id: string) => void;
 }
 
-export default function PlanCard({ plan, onClick }: PlanCardProps) {
-  const progress = Math.round((plan.saved / plan.goal) * 100);
+export default function PlanCard({ plan, onClick, onDelete }: PlanCardProps) {
+  const progress = Math.min(100, Math.round((plan.saved / plan.goal) * 100));
   const isComplete = progress >= 100;
+  const [showConfirm, setShowConfirm] = React.useState(false);
 
   return (
     <div 
@@ -75,15 +77,41 @@ export default function PlanCard({ plan, onClick }: PlanCardProps) {
       
       <ProgressBar progress={progress} size="md" />
       
-      {/* Complete badge */}
-      {isComplete && (
-        <div className="mt-4 pt-3 border-t border-border/30">
-          <span className="text-xs font-semibold text-success flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-            Goal Reached!
+{/* Completed state */}
+      {isComplete ? (
+        <div className="mt-4 pt-3 border-t border-border/30 flex items-center justify-between">
+          <span className="text-xs font-medium text-success">
+            Completed
           </span>
+          {!showConfirm ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowConfirm(true);
+              }}
+              className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+            >
+              Delete
+            </button>
+          ) : (
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => onDelete?.(plan.id)}
+                className="text-xs text-destructive font-medium"
+              >
+                Yes
+              </button>
+              <span className="text-xs text-muted-foreground">/</span>
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                No
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

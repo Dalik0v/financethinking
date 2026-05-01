@@ -97,9 +97,22 @@ const storedGoals = JSON.parse(localStorage.getItem("goals") || "[]");
     setSavingsAmount("");
   };
 
-  const handleAction = () => {
+const handleAction = () => {
     // Navigate to the Emergency Fund plan
     setSelectedPlanId("2");
+  };
+
+  const handleDeleteGoal = (id: string) => {
+    // Remove from localStorage
+    const storedGoals = JSON.parse(localStorage.getItem("goals") || "[]");
+    const updatedGoals = storedGoals.filter((g: any) => g.id !== id);
+    localStorage.setItem("goals", JSON.stringify(updatedGoals));
+
+    // Remove from state
+    setPlans(plans.filter(p => p.id !== id));
+
+    // Close modal if open
+    setSelectedPlanId(null);
   };
 
   return (
@@ -119,13 +132,14 @@ const storedGoals = JSON.parse(localStorage.getItem("goals") || "[]");
         onAction={handleAction}
       />
 
-      {/* Plans List */}
+{/* Plans List */}
       <div className="px-6 grid gap-4">
         {plans.map((plan) => (
           <PlanCard 
             key={plan.id}
             plan={plan}
             onClick={() => setSelectedPlanId(plan.id)}
+            onDelete={handleDeleteGoal}
           />
         ))}
       </div>

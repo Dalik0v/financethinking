@@ -1,10 +1,10 @@
 "use client";
-
 import React, { useState } from "react";
 import Link from "next/link";
-import { Bell, Plus, Search, LayoutGrid, ArrowUpRight, ArrowDownRight, X } from "lucide-react";
+import { Bell, Plus, Search, X } from "lucide-react";
 import { BankCard } from "@/components/shared/BankCard";
 import { TransactionItem } from "@/components/shared/TransactionItem";
+import QuickActions from "@/components/layout/QuickActions";
 
 interface BankAccount {
   id: string;
@@ -88,14 +88,7 @@ export default function Dashboard() {
       </section>
 
 {/* Quick Actions */}
-      <section className="px-6">
-        <div className="grid grid-cols-4 gap-4">
-          <ActionButton href="/transactions" icon={<Plus />} label="Add" />
-          <ActionButton href="/create-goal" icon={<ArrowUpRight />} label="Goals" />
-          <ActionButton href="/analytics" icon={<ArrowDownRight />} label="Insights" />
-          <ActionButton href="/settings" icon={<LayoutGrid />} label="More" />
-        </div>
-      </section>
+      <QuickActions />
 
       {/* Recent Transactions */}
       <section className="px-6 space-y-6">
