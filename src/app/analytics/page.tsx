@@ -187,7 +187,7 @@ export default function Analytics() {
         </div>
       </button>
 
-      {/* AI Chat Modal */}
+      {/* AI Chat  */}
       {isAIChatOpen && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsAIChatOpen(false)} />

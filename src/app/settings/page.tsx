@@ -7,30 +7,21 @@ import {
   Smartphone, 
   Bell, 
   Lock, 
-  Moon, 
   HelpCircle, 
   LogOut, 
   ChevronRight,
   ShieldCheck,
-  Check
+  Check,
+  Palette
 } from "lucide-react";
 import Link from "next/link";
+import ThemeSelector from "@/components/shared/ThemeSelector";
 
 export default function Settings() {
-  const [isDarkMode, setIsDarkMode] = useState(true);
   const [showSavedToast, setShowSavedToast] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  React.useEffect(() => {
-    const theme = document.documentElement.getAttribute('data-theme');
-    setIsDarkMode(theme !== 'light');
-  }, []);
-
-  const handleToggle = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    document.documentElement.setAttribute('data-theme', newMode ? 'dark' : 'light');
-    localStorage.setItem('theme', newMode ? 'dark' : 'light');
+  const handleThemeChange = () => {
     setShowSavedToast(true);
     setTimeout(() => setShowSavedToast(false), 2000);
   };
@@ -82,16 +73,18 @@ export default function Settings() {
           <SettingsItem icon={<Smartphone size={20} />} label="Connected Devices" />
         </SettingsGroup>
 
-        <SettingsGroup title="Preferences">
+<SettingsGroup title="Preferences">
           <SettingsItem icon={<Bell size={20} />} label="Notifications" hasToggle />
           <SettingsItem icon={<Lock size={20} />} label="Security & Privacy" />
-          <SettingsItem 
-            icon={<Moon size={20} />} 
-            label="Dark Mode" 
-            hasToggle 
-            toggleValue={isDarkMode} 
-            onToggle={handleToggle} 
-          />
+          <div className="flex items-center justify-between p-5">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-foreground/5 rounded-xl flex items-center justify-center text-foreground">
+                <Palette size={20} />
+              </div>
+              <span className="font-bold text-sm">Theme</span>
+            </div>
+            <ThemeSelector />
+          </div>
         </SettingsGroup>
 
         <SettingsGroup title="Support">

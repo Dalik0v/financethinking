@@ -14,7 +14,7 @@ export default function Scan() {
 
   return (
     <div className="flex flex-col h-full bg-black text-white relative overflow-hidden">
-      {/* Camera View Placeholder */}
+      {/* Camera View  */}
       <div className="absolute inset-0 bg-neutral-900 flex items-center justify-center">
         {!isScanning && (
           <div className="bg-card border border-border p-8 rounded-3xl flex flex-col items-center gap-4 animate-in zoom-in duration-300">
