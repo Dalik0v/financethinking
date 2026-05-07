@@ -1,4 +1,4 @@
-using AIProject.Services;
+using AIProject.Services.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AIProject.Controllers;
@@ -7,18 +7,19 @@ namespace AIProject.Controllers;
 [Route("api/ai")]
 public class AIController : ControllerBase
 {
-    private readonly AIService _aiService;
+    private readonly IAIService _aiService;
 
-    public AIController(AIService aiService)
+    public AIController(IAIService aiService)
     {
         _aiService = aiService;
     }
 
     [HttpPost]
-    public async Task<IActionResult> Ask([FromBody] string prompt)
+    public async Task<IActionResult> Ask([FromBody] string prompt, CancellationToken cancellationToken)
     {
-        var result = await _aiService.Ask(prompt);
+        var result = await _aiService.AskAsync(prompt, cancellationToken);
         return Ok(result);
     }
 }
+
 
