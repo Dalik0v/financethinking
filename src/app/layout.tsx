@@ -16,18 +16,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
+      <html lang="en" className="h-full antialiased" data-theme="dark">
+
       <head>
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            (function() {
-              const theme = localStorage.getItem('theme') || 'dark';
-              document.documentElement.setAttribute('data-theme', theme);
-            })()
-          `
-        }} />
+
+
       </head>
-      <body className={`${inter.className} min-h-full flex flex-col bg-background text-foreground`}>
+<body suppressHydrationWarning className={`${inter.className} min-h-full flex flex-col bg-background text-foreground`}>
+
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>

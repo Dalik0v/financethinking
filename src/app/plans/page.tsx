@@ -69,9 +69,15 @@ export default function Plans() {
         deadline: g.deadline,
       }));
       
-      if (mappedPlans.length > 0) {
-        setPlans(prev => [...prev, ...mappedPlans]);
+      // Dedupe by id (keep last occurrence)
+      const uniqueMappedPlans = Array.from(new Map((mappedPlans as Plan[]).map(p => [p.id, p])).values()) as Plan[];
+      const uniqueInitialPlans = Array.from(new Map((INITIAL_PLANS as Plan[]).map(p => [p.id, p])).values()) as Plan[];
+      
+      if (uniqueMappedPlans.length > 0) {
+        setPlans([...uniqueInitialPlans, ...uniqueMappedPlans]);
       }
+
+
     }
   }, []);
 
@@ -134,14 +140,15 @@ const handleAction = () => {
 
 {/* Plans List */}
       <div className="px-6 grid gap-4">
-        {plans.map((plan) => (
+        {plans.map((plan, index) => (
           <PlanCard 
-            key={plan.id}
+            key={`plan-${plan.id}-${index}`}
             plan={plan}
             onClick={() => setSelectedPlanId(plan.id)}
             onDelete={handleDeleteGoal}
           />
         ))}
+
       </div>
 
       {/* Add Savings Modal */}

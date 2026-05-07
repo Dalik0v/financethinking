@@ -50,13 +50,14 @@ export default function CreateGoal() {
     
     // Create goal object
     const newGoal: Goal = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       name: goalName.trim(),
       targetAmount: parseFloat(targetAmount),
       deadline,
       category: finalCategory,
       saved: 0,
     };
+
     
     // Save to localStorage
     const existingGoals = JSON.parse(localStorage.getItem("goals") || "[]");

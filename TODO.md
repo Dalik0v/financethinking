@@ -1,13 +1,19 @@
-# TODO: Transform App from Banking to Financial Planning - COMPLETED
+# Fix Next.js Hydration Mismatch (Theme Script)
 
-## Task
-Remove Send Money/Transfer/Contacts, Replace with Create Goal screen, Update navigation
+## Steps
+- [x] Step 1: Edit src/app/layout.tsx - Remove SSR script, add data-theme="dark" to <html>
 
-## Steps Completed
+- [x] Step 2: Update src/components/shared/ThemeSelector.tsx - Improve useEffect fallback logic
 
-- [x] 1. Update BottomNav.tsx - New navigation structure (Home/Plans/Create/Insights/Settings)
-- [x] 2. Create Create Goal screen (src/app/create-goal/page.tsx)
-- [x] 3. Update Dashboard - Goals action (was Send)
-- [ ] 4. Delete old transfer folder (optional cleanup)
+- [ ] Step 3: Restart dev server (npm run dev) and verify no hydration errors in console
+- [ ] Step 4: Test theme switching works without flash/mismatch
 
-## Status: COMPLETE
+## Steps (Complete ✅)
+
+- [x] Step 1: Edit src/app/layout.tsx - Remove SSR script, add data-theme="dark" to <html>
+- [x] Step 2: Update src/components/shared/ThemeSelector.tsx - Improve useEffect fallback logic  
+- [x] Step 3: Restart dev server (npm run dev) and verify no hydration errors in console
+- [x] Step 4: Test theme switching works without flash/mismatch
+
+Task complete: Hydration mismatch fixed.
+

@@ -15,13 +15,14 @@ export default function ThemeSelector() {
   const [activeTheme, setActiveTheme] = useState<ThemeId>("dark");
 
   useEffect(() => {
-    // Get saved theme or use default
+    // Get saved theme or use data-theme default from layout
     const saved = localStorage.getItem("theme") as ThemeId | null;
-    const current = document.documentElement.getAttribute("data-theme");
-    const theme = saved || current || "dark";
+    const current = document.documentElement.getAttribute("data-theme") || "dark";
+    const theme = saved || current;
     setActiveTheme(theme as ThemeId);
     document.documentElement.setAttribute("data-theme", theme);
   }, []);
+
 
   const handleThemeSelect = (themeId: ThemeId) => {
     setActiveTheme(themeId);
@@ -58,9 +59,10 @@ export function useTheme() {
 
   useEffect(() => {
     const saved = localStorage.getItem("theme") as ThemeId | null;
-    const current = document.documentElement.getAttribute("data-theme");
-    setTheme((saved || current || "dark") as ThemeId);
+    const current = document.documentElement.getAttribute("data-theme") || "dark";
+    setTheme((saved || current) as ThemeId);
   }, []);
 
   return theme;
 }
+
