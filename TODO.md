@@ -1,19 +1,8 @@
-# Fix Next.js Hydration Mismatch (Theme Script)
-
-## Steps
-- [x] Step 1: Edit src/app/layout.tsx - Remove SSR script, add data-theme="dark" to <html>
-
-- [x] Step 2: Update src/components/shared/ThemeSelector.tsx - Improve useEffect fallback logic
-
-- [ ] Step 3: Restart dev server (npm run dev) and verify no hydration errors in console
-- [ ] Step 4: Test theme switching works without flash/mismatch
-
-## Steps (Complete ✅)
-
-- [x] Step 1: Edit src/app/layout.tsx - Remove SSR script, add data-theme="dark" to <html>
-- [x] Step 2: Update src/components/shared/ThemeSelector.tsx - Improve useEffect fallback logic  
-- [x] Step 3: Restart dev server (npm run dev) and verify no hydration errors in console
-- [x] Step 4: Test theme switching works without flash/mismatch
-
-Task complete: Hydration mismatch fixed.
-
+- [ ] Redesign landing dashboard as futuristic minimal AI console
+  - [ ] Remove banking UI from `src/app/page.tsx` (BankCard, Total Balance, transactions, connect-bank modal)
+  - [ ] Add centered AI panel (AI Insight card, recommendation, confidence %, recent analysis, minimal activity history)
+  - [ ] Add AI interaction buttons: Analyze, Ask AI, Generate Insight, History
+  - [ ] Ensure no banking terminology/components are referenced on the landing page
+- [ ] Styling polish
+  - [ ] Verify glassmorphism, thin borders, subtle orange/red accent glow, cinematic dark gradients
+- [ ] Build/check Next.js compilation

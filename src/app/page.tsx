@@ -16,27 +16,44 @@ interface BankAccount {
 }
 
 const INITIAL_CARDS: BankAccount[] = [
-  { id: "1", number: "4281", type: "visa", name: "Salary Account", balance: "$12,400", variant: "accent" },
-  { id: "2", number: "9012", type: "mastercard", name: "Savings", balance: "$28,150", variant: "dark" },
+  {
+    id: "1",
+    number: "4281",
+    type: "visa",
+    name: "Salary Account",
+    balance: "$12,400",
+    variant: "accent",
+  },
+  {
+    id: "2",
+    number: "9012",
+    type: "mastercard",
+    name: "Savings",
+    balance: "$28,150",
+    variant: "dark",
+  },
 ];
 
 export default function Dashboard() {
   const [isAddBankOpen, setIsAddBankOpen] = useState(false);
   const [cards, setCards] = useState<BankAccount[]>(INITIAL_CARDS);
-  const [selectedBank, setSelectedBank] = useState<{ name: string, domain: string } | null>(null);
+  const [selectedBank, setSelectedBank] = useState<{
+    name: string;
+    domain: string;
+  } | null>(null);
 
   const handleAddBank = () => {
     if (!selectedBank) return;
-    
+
     const newCard: BankAccount = {
       id: Math.random().toString(36).substr(2, 9),
       number: Math.floor(1000 + Math.random() * 9000).toString(),
-      type: selectedBank.name.toLowerCase().includes('visa') ? 'visa' : 'mastercard',
+      type: selectedBank.name.toLowerCase().includes("visa") ? "visa" : "mastercard",
       name: `${selectedBank.name} Account`,
       balance: "$0.00",
-      variant: "dark"
+      variant: "dark",
     };
-    
+
     setCards([...cards, newCard]);
     setIsAddBankOpen(false);
     setSelectedBank(null);
@@ -47,9 +64,7 @@ export default function Dashboard() {
       {/* Header */}
       <header className="pt-16 px-6 flex justify-between items-start">
         <div>
-          <p className="text-muted text-sm font-medium tracking-wide uppercase mb-1">
-            Total Balance
-          </p>
+          <p className="text-muted text-sm font-medium tracking-wide uppercase mb-1">Total Balance</p>
           <h1 className="text-5xl font-bold tracking-tight">
             $42,560<span className="text-muted text-3xl">.80</span>
           </h1>
@@ -66,7 +81,7 @@ export default function Dashboard() {
         <div className="flex gap-4 overflow-x-auto no-scrollbar px-6 py-2">
           {cards.map((card) => (
             <Link key={card.id} href="/cards">
-              <BankCard 
+              <BankCard
                 variant={card.variant}
                 number={card.number}
                 type={card.type}
@@ -75,7 +90,7 @@ export default function Dashboard() {
               />
             </Link>
           ))}
-          <button 
+          <button
             onClick={() => setIsAddBankOpen(true)}
             className="min-w-[140px] h-44 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-3 text-muted hover:text-foreground hover:border-muted transition-all active:scale-95 group shrink-0"
           >
@@ -87,7 +102,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-{/* Quick Actions */}
+      {/* Quick Actions */}
       <QuickActions />
 
       {/* Recent Transactions */}
@@ -98,37 +113,24 @@ export default function Dashboard() {
             <button className="text-accent text-sm font-semibold hover:opacity-80">See All</button>
           </Link>
         </div>
-        
+
         <div className="space-y-3">
           <Link href="/transactions" className="block">
-            <TransactionItem 
-              title="Apple Store" 
-              category="Electronics" 
-              amount="-$1,299.00" 
+            <TransactionItem
+              title="Apple Store"
+              category="Electronics"
+              amount="-$1,299.00"
               icon={<Search className="w-5 h-5 text-accent" />}
             />
           </Link>
           <Link href="/transactions" className="block">
-            <TransactionItem 
-              title="Monthly Salary" 
-              category="Work" 
-              amount="+$5,500.00" 
-              isIncome 
-            />
+            <TransactionItem title="Monthly Salary" category="Work" amount="+$5,500.00" isIncome />
           </Link>
           <Link href="/transactions" className="block">
-            <TransactionItem 
-              title="Starbucks" 
-              category="Coffee" 
-              amount="-$12.50" 
-            />
+            <TransactionItem title="Starbucks" category="Coffee" amount="-$12.50" />
           </Link>
           <Link href="/transactions" className="block">
-            <TransactionItem 
-              title="Netflix" 
-              category="Entertainment" 
-              amount="-$15.99" 
-            />
+            <TransactionItem title="Netflix" category="Entertainment" amount="-$15.99" />
           </Link>
         </div>
       </section>
@@ -136,51 +138,74 @@ export default function Dashboard() {
       {/* Add Bank Modal Simulation */}
       {isAddBankOpen && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsAddBankOpen(false)} />
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsAddBankOpen(false)}
+          />
           <div className="bg-card border border-border w-full max-w-lg rounded-3xl p-8 relative shadow-premium animate-in fade-in slide-in-from-bottom-10 duration-300">
-            <button 
+            <button
               onClick={() => setIsAddBankOpen(false)}
               className="absolute right-6 top-6 w-10 h-10 rounded-full bg-foreground/5 flex items-center justify-center hover:bg-foreground/10 transition-colors"
             >
               <X size={20} />
             </button>
             <h2 className="text-2xl font-bold mb-2">Connect a Bank</h2>
-            <p className="text-muted text-sm mb-8 font-medium">Select your bank to sync your transactions automatically.</p>
-            
+            <p className="text-muted text-sm mb-8 font-medium">
+              Select your bank to sync your transactions automatically.
+            </p>
+
             <div className="grid grid-cols-2 gap-4 mb-8">
-              <BankOption 
-                name="Revolut" domain="revolut.com" color="bg-[#191C1F]" logo="R" 
-                selected={selectedBank?.name === "Revolut"} 
+              <BankOption
+                name="Revolut"
+                domain="revolut.com"
+                color="bg-[#191C1F]"
+                logo="R"
+                selected={selectedBank?.name === "Revolut"}
                 onSelect={() => setSelectedBank({ name: "Revolut", domain: "revolut.com" })}
               />
-              <BankOption 
-                name="Swedbank" domain="swedbank.com" color="bg-[#EE7023]" logo="S" 
-                selected={selectedBank?.name === "Swedbank"} 
+              <BankOption
+                name="Swedbank"
+                domain="swedbank.com"
+                color="bg-[#EE7023]"
+                logo="S"
+                selected={selectedBank?.name === "Swedbank"}
                 onSelect={() => setSelectedBank({ name: "Swedbank", domain: "swedbank.com" })}
               />
-              <BankOption 
-                name="SEB" domain="seb.se" color="bg-[#009241]" logo="SEB" 
-                selected={selectedBank?.name === "SEB"} 
+              <BankOption
+                name="SEB"
+                domain="seb.se"
+                color="bg-[#009241]"
+                logo="SEB"
+                selected={selectedBank?.name === "SEB"}
                 onSelect={() => setSelectedBank({ name: "SEB", domain: "seb.se" })}
               />
-              <BankOption 
-                name="HSBC" domain="hsbc.com" color="bg-[#DB0011]" logo="H" 
-                selected={selectedBank?.name === "HSBC"} 
+              <BankOption
+                name="HSBC"
+                domain="hsbc.com"
+                color="bg-[#DB0011]"
+                logo="H"
+                selected={selectedBank?.name === "HSBC"}
                 onSelect={() => setSelectedBank({ name: "HSBC", domain: "hsbc.com" })}
               />
-              <BankOption 
-                name="Barclays" domain="barclays.co.uk" color="bg-[#00AEEF]" logo="B" 
-                selected={selectedBank?.name === "Barclays"} 
+              <BankOption
+                name="Barclays"
+                domain="barclays.co.uk"
+                color="bg-[#00AEEF]"
+                logo="B"
+                selected={selectedBank?.name === "Barclays"}
                 onSelect={() => setSelectedBank({ name: "Barclays", domain: "barclays.co.uk" })}
               />
-              <BankOption 
-                name="BNP Paribas" domain="bnpparibas.com" color="bg-[#009159]" logo="BNP" 
-                selected={selectedBank?.name === "BNP Paribas"} 
+              <BankOption
+                name="BNP Paribas"
+                domain="bnpparibas.com"
+                color="bg-[#009159]"
+                logo="BNP"
+                selected={selectedBank?.name === "BNP Paribas"}
                 onSelect={() => setSelectedBank({ name: "BNP Paribas", domain: "bnpparibas.com" })}
               />
             </div>
-            
-            <button 
+
+            <button
               onClick={handleAddBank}
               disabled={!selectedBank}
               className="w-full bg-accent disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-bold shadow-accent-glow active:scale-[0.98] transition-all"
@@ -194,19 +219,37 @@ export default function Dashboard() {
   );
 }
 
-function BankOption({ name, domain, color, logo, selected, onSelect }: { name: string, domain: string, color: string, logo: string, selected: boolean, onSelect: () => void }) {
+function BankOption({
+  name,
+  domain,
+  color,
+  logo,
+  selected,
+  onSelect,
+}: {
+  name: string;
+  domain: string;
+  color: string;
+  logo: string;
+  selected: boolean;
+  onSelect: () => void;
+}) {
   const [imgError, setImgError] = React.useState(false);
 
   return (
-    <button 
+    <button
       onClick={onSelect}
-      className={`bg-card border p-4 rounded-2xl flex items-center gap-3 transition-all active:scale-95 text-sm font-bold shadow-premium group ${selected ? 'border-accent ring-1 ring-accent' : 'border-border hover:border-muted'}`}
+      className={`bg-card border p-4 rounded-2xl flex items-center gap-3 transition-all active:scale-95 text-sm font-bold shadow-premium group ${
+        selected ? "border-accent ring-1 ring-accent" : "border-border hover:border-muted"
+      }`}
     >
-      <div className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center text-white text-[10px] font-black group-hover:scale-110 transition-transform shadow-lg overflow-hidden shrink-0`}>
+      <div
+        className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center text-white text-[10px] font-black group-hover:scale-110 transition-transform shadow-lg overflow-hidden shrink-0`}
+      >
         {!imgError ? (
-          <img 
-            src={`https://logo.clearbit.com/${domain}`} 
-            alt={name} 
+          <img
+            src={`https://logo.clearbit.com/${domain}`}
+            alt={name}
             className="w-full h-full object-cover"
             onError={() => setImgError(true)}
           />
@@ -218,17 +261,3 @@ function BankOption({ name, domain, color, logo, selected, onSelect }: { name: s
     </button>
   );
 }
-
-function ActionButton({ icon, label, href = "/" }: { icon: React.ReactNode, label: string, href?: string }) {
-  return (
-    <Link href={href} className="flex flex-col items-center gap-2 group">
-      <button className="w-14 h-14 bg-card border border-border rounded-2xl flex items-center justify-center transition-all active:scale-90 group-hover:bg-card/80 group-hover:border-muted/50 shadow-premium">
-        {React.cloneElement(icon as React.ReactElement<any>, { size: 24, className: "text-foreground" })}
-      </button>
-      <span className="text-[10px] font-bold text-muted uppercase tracking-wider group-hover:text-foreground transition-colors">{label}</span>
-    </Link>
-  );
-}
-
-
-
