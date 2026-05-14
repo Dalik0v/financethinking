@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIProject</name>
+    </assembly>
+    <members>
+        <member name="T:AIProject.Services.AIService">
+            <summary>
+            Clean architecture service implementation that calls the official OpenAI .NET SDK.
+            </summary>
+        </member>
+    </members>
+</doc>

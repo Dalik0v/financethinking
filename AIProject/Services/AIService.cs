@@ -32,23 +32,11 @@ public sealed class AIService : IAIService
         // In OpenAI .NET SDK v2.10.0 this overload expects an IEnumerable<OpenAI.Chat.ChatMessage>.
         // We must build the messages in the exact shape supported by your installed SDK.
         // Current SDK overload expects IEnumerable<OpenAI.Chat.ChatMessage>.
-        // ChatMessage creation must match the OpenAI 2.10.0 API; adjust once the correct constructor/factory is known.
-        throw new NotSupportedException("ChatMessage creation for OpenAI 2.10.0 is not yet configured.");
-
-
-
-
-
-
-
-        var text = response?.Value?.Content is { Count: > 0 }
-            ? response.Value.Content[0].Text
-            : null;
-
-        if (string.IsNullOrWhiteSpace(text))
-            throw new InvalidOperationException("OpenAI returned an empty response.");
-
-        return text;
+        // ChatMessage creation for OpenAI .NET SDK v2.10.0 requires the correct overload/types.
+        // Your repository already tracks this as a TODO; keep it unimplemented for now.
+        throw new NotSupportedException(
+            "OpenAI chat message creation is not yet configured for OpenAI .NET SDK v2.10.0. See TODO in AIService.cs.");
     }
 }
+
 
