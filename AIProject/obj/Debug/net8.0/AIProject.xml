@@ -4,6 +4,18 @@
         <name>AIProject</name>
     </assembly>
     <members>
+        <member name="T:AIProject.Migrations.InitialCreate">
+            <inheritdoc />
+        </member>
+        <member name="M:AIProject.Migrations.InitialCreate.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:AIProject.Migrations.InitialCreate.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:AIProject.Migrations.InitialCreate.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
         <member name="T:AIProject.Services.AIService">
             <summary>
             Clean architecture service implementation that calls the official OpenAI .NET SDK.
