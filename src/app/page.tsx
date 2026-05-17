@@ -1,10 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Bell, Plus, Search, X } from "lucide-react";
 import { BankCard } from "@/components/shared/BankCard";
 import { TransactionItem } from "@/components/shared/TransactionItem";
 import QuickActions from "@/components/layout/QuickActions";
+import { apiFetch } from "@/lib/api";
 
 interface BankAccount {
   id: string;
@@ -34,6 +35,10 @@ const INITIAL_CARDS: BankAccount[] = [
   },
 ];
 
+type TransactionsApiResponse = {
+  currentBalance: number;
+};
+
 export default function Dashboard() {
   const [isAddBankOpen, setIsAddBankOpen] = useState(false);
   const [cards, setCards] = useState<BankAccount[]>(INITIAL_CARDS);
@@ -41,6 +46,36 @@ export default function Dashboard() {
     name: string;
     domain: string;
   } | null>(null);
+
+  const [balance, setBalance] = useState<number | null>(null);
+  const [balanceError, setBalanceError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function run() {
+      try {
+        // backend returns currentBalance
+        const res = await apiFetch<TransactionsApiResponse>(
+          "/api/transactions?take=1&page=1"
+        );
+        if (!cancelled) setBalance(res.currentBalance);
+      } catch (e: any) {
+        if (!cancelled) setBalanceError(e?.message ?? "Failed to load balance");
+      }
+    }
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const formattedBalance = useMemo(() => {
+    if (balance === null) return "$0.00";
+    return `$${balance.toFixed(2)}`;
+  }, [balance]);
 
   const handleAddBank = () => {
     if (!selectedBank) return;
@@ -64,10 +99,17 @@ export default function Dashboard() {
       {/* Header */}
       <header className="pt-16 px-6 flex justify-between items-start">
         <div>
-          <p className="text-muted text-sm font-medium tracking-wide uppercase mb-1">Total Balance</p>
+          <p className="text-muted text-sm font-medium tracking-wide uppercase mb-1">
+            Total Balance
+          </p>
           <h1 className="text-5xl font-bold tracking-tight">
-            $42,560<span className="text-muted text-3xl">.80</span>
+            {formattedBalance}
           </h1>
+          {balanceError ? (
+            <p className="text-red-400 text-xs font-semibold mt-1">
+              {balanceError}
+            </p>
+          ) : null}
         </div>
         <Link href="/notifications">
           <button className="w-12 h-12 bg-card rounded-full flex items-center justify-center border border-border active:scale-90 transition-all shadow-premium hover:bg-card/80">
@@ -97,7 +139,9 @@ export default function Dashboard() {
             <div className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center group-hover:scale-110 transition-transform">
               <Plus className="w-5 h-5" />
             </div>
-            <span className="text-xs font-bold uppercase tracking-wider">Add Bank</span>
+            <span className="text-xs font-bold uppercase tracking-wider">
+              Add Bank
+            </span>
           </button>
         </div>
       </section>
@@ -110,10 +154,13 @@ export default function Dashboard() {
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold tracking-tight">Recent Activity</h2>
           <Link href="/transactions">
-            <button className="text-accent text-sm font-semibold hover:opacity-80">See All</button>
+            <button className="text-accent text-sm font-semibold hover:opacity-80">
+              See All
+            </button>
           </Link>
         </div>
 
+        {/* NOTE: below is still static demo items. Transactions page (/transactions) is now live from DB. */}
         <div className="space-y-3">
           <Link href="/transactions" className="block">
             <TransactionItem
@@ -124,13 +171,26 @@ export default function Dashboard() {
             />
           </Link>
           <Link href="/transactions" className="block">
-            <TransactionItem title="Monthly Salary" category="Work" amount="+$5,500.00" isIncome />
+            <TransactionItem
+              title="Monthly Salary"
+              category="Work"
+              amount="+$5,500.00"
+              isIncome
+            />
           </Link>
           <Link href="/transactions" className="block">
-            <TransactionItem title="Starbucks" category="Coffee" amount="-$12.50" />
+            <TransactionItem
+              title="Starbucks"
+              category="Coffee"
+              amount="-$12.50"
+            />
           </Link>
           <Link href="/transactions" className="block">
-            <TransactionItem title="Netflix" category="Entertainment" amount="-$15.99" />
+            <TransactionItem
+              title="Netflix"
+              category="Entertainment"
+              amount="-$15.99"
+            />
           </Link>
         </div>
       </section>
@@ -261,3 +321,4 @@ function BankOption({
     </button>
   );
 }
+

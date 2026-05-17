@@ -1,27 +1,124 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Search, Filter, Download, ArrowUpRight, ArrowDownRight, Coffee, ShoppingBag, Utensils, Home, Zap } from "lucide-react";
 import Link from "next/link";
+import { apiFetch } from "@/lib/api";
 
-const TRANSACTIONS = [
-  { id: 1, title: "Apple Store", category: "Electronics", amount: -1299.00, date: "Today", icon: <ShoppingBag className="text-accent" /> },
-  { id: 2, title: "Monthly Salary", category: "Work", amount: 5500.00, date: "Today", icon: <Zap className="text-success" />, isIncome: true },
-  { id: 3, title: "Starbucks", category: "Coffee", amount: -12.50, date: "Yesterday", icon: <Coffee className="text-orange-400" /> },
-  { id: 4, title: "Netflix", category: "Entertainment", amount: -15.99, date: "Yesterday", icon: <Zap className="text-purple-400" /> },
-  { id: 5, title: "Rent Payment", category: "Housing", amount: -2100.00, date: "2 days ago", icon: <Home className="text-blue-400" /> },
-  { id: 6, title: "Whole Foods", category: "Grocery", amount: -145.20, date: "3 days ago", icon: <Utensils className="text-green-400" /> },
-];
+type TransactionType = 1 | 2; // matches backend enum values
+
+type TransactionResponseDto = {
+  id: number;
+  amount: number;
+  type: TransactionType;
+  category: string;
+  description?: string | null;
+  date: string;
+  userId?: string | null;
+};
+
+type TransactionsApiResponse = {
+  currentBalance: number;
+  monthlyIncome: number;
+  monthlyExpenses: number;
+  totalCount: number;
+  recentTransactions: TransactionResponseDto[];
+};
+
+type UiTx = {
+  id: number;
+  title: string;
+  category: string;
+  amount: number;
+  dateLabel: string;
+  isIncome: boolean;
+  icon: React.ReactNode;
+};
+
+function formatDateLabel(dateIso: string) {
+  const d = new Date(dateIso);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays <= 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays <= 7) return `${diffDays} days ago`;
+  return d.toLocaleDateString();
+}
+
+function pickIcon(category: string, isIncome: boolean) {
+  if (isIncome) return <Zap className="text-success" />;
+
+  const c = category.toLowerCase();
+  if (c.includes("coffee")) return <Coffee className="text-orange-400" />;
+  if (c.includes("grocery") || c.includes("food") || c.includes("utensil")) return <Utensils className="text-green-400" />;
+  if (c.includes("rent") || c.includes("housing") || c.includes("home")) return <Home className="text-blue-400" />;
+  if (c.includes("entertain") || c.includes("netflix")) return <Zap className="text-purple-400" />;
+  return <ShoppingBag className="text-accent" />;
+}
 
 export default function Transactions() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState<"All" | "Income" | "Outcome">("All");
 
-  const filteredTransactions = TRANSACTIONS.filter(t => {
-    const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTab = activeTab === "All" || (activeTab === "Income" && t.isIncome) || (activeTab === "Outcome" && !t.isIncome);
-    return matchesSearch && matchesTab;
-  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [apiData, setApiData] = useState<TransactionsApiResponse | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function run() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // take/page are supported by backend
+        const res = await apiFetch<TransactionsApiResponse>(`/api/transactions?take=200&page=1`);
+        if (!cancelled) setApiData(res);
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message ?? "Failed to load transactions");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const transactions: UiTx[] = useMemo(() => {
+    const items = apiData?.recentTransactions ?? [];
+
+    return items.map((t) => {
+      // backend: Expense=1, TopUp=2
+      const isIncome = t.type === 2;
+
+      return {
+        id: t.id,
+        title: t.description?.trim() ? t.description!.trim() : (t.category || "Transaction"),
+        category: t.category,
+        amount: isIncome ? Math.abs(t.amount) : -Math.abs(t.amount),
+        dateLabel: formatDateLabel(t.date),
+        isIncome,
+        icon: pickIcon(t.category, isIncome),
+      };
+    });
+  }, [apiData]);
+
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((t) => {
+      const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesTab =
+        activeTab === "All" ||
+        (activeTab === "Income" && t.isIncome) ||
+        (activeTab === "Outcome" && !t.isIncome);
+      return matchesSearch && matchesTab;
+    });
+  }, [transactions, searchQuery, activeTab]);
 
   return (
     <div className="flex flex-col gap-8 pb-32">
@@ -42,8 +139,8 @@ export default function Transactions() {
         <div className="flex gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted w-4 h-4" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search history..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -60,31 +157,45 @@ export default function Transactions() {
           {["All", "Income", "Outcome"].map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === tab ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
+              onClick={() => setActiveTab(tab as any)}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                activeTab === tab ? "bg-foreground text-background" : "text-muted hover:text-foreground"
+              }`}
             >
               {tab}
             </button>
           ))}
         </div>
 
-        {/* Transaction List */}
-        <div className="space-y-6">
-          <div className="space-y-3">
+        {/* Content */}
+        {loading ? (
+          <div className="text-muted text-sm font-semibold">Loading...</div>
+        ) : error ? (
+          <div className="text-red-400 text-sm font-semibold">{error}</div>
+        ) : filteredTransactions.length === 0 ? (
+          <div className="text-muted text-sm font-semibold">No transactions found.</div>
+        ) : (
+          <div className="space-y-6">
             {filteredTransactions.map((tx) => (
-              <div key={tx.id} className="bg-card border border-border p-4 rounded-3xl flex items-center justify-between shadow-premium hover:border-muted transition-all cursor-pointer active:scale-[0.98] group">
+              <div
+                key={tx.id}
+                className="bg-card border border-border p-4 rounded-3xl flex items-center justify-between shadow-premium hover:border-muted transition-all cursor-pointer active:scale-[0.98] group"
+              >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-foreground/5 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
                     {tx.icon}
                   </div>
                   <div>
                     <h4 className="font-bold text-sm">{tx.title}</h4>
-                    <p className="text-[10px] text-muted font-bold uppercase tracking-widest">{tx.date} • {tx.category}</p>
+                    <p className="text-[10px] text-muted font-bold uppercase tracking-widest">
+                      {tx.dateLabel} • {tx.category}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className={`font-black ${tx.amount > 0 ? 'text-success' : 'text-foreground'}`}>
-                    {tx.amount > 0 ? '+' : ''}{tx.amount.toFixed(2)}
+                  <span className={`font-black ${tx.amount > 0 ? "text-success" : "text-foreground"}`}>
+                    {tx.amount > 0 ? "+" : ""}
+                    {tx.amount.toFixed(2)}
                   </span>
                   <div className="flex items-center justify-end gap-1 mt-1 opacity-40">
                     {tx.amount > 0 ? <ArrowDownRight size={10} /> : <ArrowUpRight size={10} />}
@@ -94,8 +205,9 @@ export default function Transactions() {
               </div>
             ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
 }
+
