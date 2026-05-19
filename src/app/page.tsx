@@ -95,7 +95,7 @@ export default function Dashboard() {
         <div className="flex justify-start gap-4 overflow-x-auto lg:overflow-visible no-scrollbar w-full px-6 py-2 items-start">
           <div className="shrink-0">
             <PremiumCard
-              balance={card?.balance ?? 0}
+              balance={balance ?? 0}
               cardNumber={card?.cardNumber ?? "4281"}
               holder={card?.holder ?? ""}
               isHidden={isHidden}

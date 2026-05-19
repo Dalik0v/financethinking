@@ -4,7 +4,7 @@ import React from "react";
 import { CreditCard } from "lucide-react";
 
 export type PremiumCardProps = {
-  balance: number;
+  balance: number | string;
   cardNumber: string;
   holder: string;
   isHidden: boolean;
@@ -40,7 +40,8 @@ export function PremiumCard({
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 2,
-  }).format(balance);
+  }).format(Number.isFinite(Number(balance)) ? Number(balance) : 0);
+
 
   return (
     <div className="relative w-[340px] h-44 shrink-0 snap-start">
