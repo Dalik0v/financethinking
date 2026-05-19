@@ -112,9 +112,11 @@ export default function Analytics() {
 
   // Existing AI chat UI state (kept)
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState([
+  const [chatMessages, setChatMessages] = useState<
+    Array<{ role: "ai" | "user"; text: string }>
+  >([
     {
-      role: "ai" as const,
+      role: "ai",
       text: "Hello! I'm your AI Financial Assistant. How can I help you today?",
     },
   ]);
@@ -172,12 +174,36 @@ export default function Analytics() {
       const map = new Map<string, number>();
       const points: ChartPoint[] = [];
 
+
       for (let i = 6; i >= 0; i--) {
         const d = new Date(now);
         d.setDate(d.getDate() - i);
         const key = dayKey(d);
+        void key;
+        // TODO: chart aggregation by day not implemented in this file version
+      }
+
+      return points;
+    }
+
+    // Fallback for other periods
+    return points;
+  }, [apiData, period]);
+
+  const handleSendMessage = async () => {
+    // Placeholder: keep UI compiling
+    if (!userInput.trim()) return;
+    setChatMessages((prev) => [
+      ...prev,
+      { role: "user" as const, text: userInput.trim() },
+    ]);
+    setUserInput("");
+  };
+
+  return (
+    <div>
       {/* Floating AI Button */}
-      <button 
+      <button
         onClick={() => setIsAIChatOpen(true)}
         className="fixed bottom-28 right-6 w-16 h-16 bg-accent text-white rounded-full flex items-center justify-center shadow-accent-glow active:scale-90 transition-all z-40 group"
       >
@@ -187,10 +213,13 @@ export default function Analytics() {
         </div>
       </button>
 
-      {/* AI Chat  */}
+      {/* AI Chat */}
       {isAIChatOpen && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsAIChatOpen(false)} />
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsAIChatOpen(false)}
+          />
           <div className="bg-card border border-border w-full max-w-lg h-[80vh] rounded-t-[40px] sm:rounded-[40px] flex flex-col relative shadow-premium animate-in slide-in-from-bottom-20 duration-300">
             {/* Chat Header */}
             <div className="p-6 border-b border-border flex items-center justify-between">
@@ -202,11 +231,13 @@ export default function Analytics() {
                   <h2 className="font-bold">FinAI Assistant</h2>
                   <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
-                    <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Online & Analyzing</span>
+                    <span className="text-[10px] text-muted font-bold uppercase tracking-wider">
+                      Online & Analyzing
+                    </span>
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setIsAIChatOpen(false)}
                 className="w-10 h-10 bg-foreground/5 rounded-full flex items-center justify-center"
               >
@@ -217,12 +248,17 @@ export default function Analytics() {
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {chatMessages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] p-4 rounded-3xl text-sm ${
-                    msg.role === 'user' 
-                      ? 'bg-accent text-white rounded-tr-none' 
-                      : 'bg-foreground/5 text-foreground rounded-tl-none border border-border'
-                  }`}>
+                <div
+                  key={i}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[80%] p-4 rounded-3xl text-sm ${
+                      msg.role === "user"
+                        ? "bg-accent text-white rounded-tr-none"
+                        : "bg-foreground/5 text-foreground rounded-tl-none border border-border"
+                    }`}
+                  >
                     {msg.text}
                   </div>
                 </div>
@@ -231,15 +267,15 @@ export default function Analytics() {
 
             {/* Input */}
             <div className="p-6 border-t border-border flex gap-3">
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                 placeholder="Ask about your budget..."
                 className="flex-1 bg-foreground/5 border border-border rounded-2xl px-5 outline-none focus:border-accent transition-all text-sm"
               />
-              <button 
+              <button
                 onClick={handleSendMessage}
                 className="w-12 h-12 bg-accent text-white rounded-2xl flex items-center justify-center shadow-accent-glow active:scale-90 transition-all"
               >
@@ -252,6 +288,7 @@ export default function Analytics() {
     </div>
   );
 }
+
 
 function SummaryCard({ label, amount, icon, trend }: { label: string, amount: string, icon: React.ReactNode, trend: string }) {
   return (

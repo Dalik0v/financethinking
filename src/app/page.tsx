@@ -2,39 +2,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Bell, Plus, Search, X } from "lucide-react";
-import { BankCard } from "@/components/shared/BankCard";
-import { TransactionItem } from "@/components/shared/TransactionItem";
+import { PremiumCard } from "@/components/shared/PremiumCard";
+
+import type { CardResponse } from "@/components/shared/types";
 import QuickActions from "@/components/layout/QuickActions";
 import { apiFetch } from "@/lib/api";
 import RecentActivity from "./RecentActivity";
 
-interface BankAccount {
-  id: string;
-  number: string;
-  type: string;
-  name: string;
-  balance: string;
-  variant: "accent" | "dark";
-}
-
-const INITIAL_CARDS: BankAccount[] = [
-  {
-    id: "1",
-    number: "4281",
-    type: "visa",
-    name: "Salary Account",
-    balance: "$12,400",
-    variant: "accent",
-  },
-  {
-    id: "2",
-    number: "9012",
-    type: "mastercard",
-    name: "Savings",
-    balance: "$28,150",
-    variant: "dark",
-  },
-];
 
 type TransactionsApiResponse = {
   currentBalance: number;
@@ -42,11 +16,13 @@ type TransactionsApiResponse = {
 
 export default function Dashboard() {
   const [isAddBankOpen, setIsAddBankOpen] = useState(false);
-  const [cards, setCards] = useState<BankAccount[]>(INITIAL_CARDS);
   const [selectedBank, setSelectedBank] = useState<{
     name: string;
     domain: string;
   } | null>(null);
+
+  const [card, setCard] = useState<CardResponse | null>(null);
+  const [isHidden, setIsHidden] = useState(true);
 
   const [balance, setBalance] = useState<number | null>(null);
   const [balanceError, setBalanceError] = useState<string | null>(null);
@@ -64,6 +40,13 @@ export default function Dashboard() {
       } catch (e: any) {
         if (!cancelled) setBalanceError(e?.message ?? "Failed to load balance");
       }
+
+      try {
+        const cardData = await apiFetch<CardResponse>("/card");
+        if (!cancelled) setCard(cardData);
+      } catch {
+        // optional: ignore card load errors for the demo page
+      }
     }
 
     run();
@@ -79,18 +62,6 @@ export default function Dashboard() {
   }, [balance]);
 
   const handleAddBank = () => {
-    if (!selectedBank) return;
-
-    const newCard: BankAccount = {
-      id: Math.random().toString(36).substr(2, 9),
-      number: Math.floor(1000 + Math.random() * 9000).toString(),
-      type: selectedBank.name.toLowerCase().includes("visa") ? "visa" : "mastercard",
-      name: `${selectedBank.name} Account`,
-      balance: "$0.00",
-      variant: "dark",
-    };
-
-    setCards([...cards, newCard]);
     setIsAddBankOpen(false);
     setSelectedBank(null);
   };
@@ -120,22 +91,21 @@ export default function Dashboard() {
       </header>
 
       {/* Bank Cards */}
-      <section>
-        <div className="flex gap-4 overflow-x-auto no-scrollbar px-6 py-2">
-          {cards.map((card) => (
-            <Link key={card.id} href="/cards">
-              <BankCard
-                variant={card.variant}
-                number={card.number}
-                type={card.type}
-                name={card.name}
-                balance={card.balance}
-              />
-            </Link>
-          ))}
+      <section className="mb-10">
+        <div className="flex justify-start gap-4 overflow-x-auto lg:overflow-visible no-scrollbar w-full px-6 py-2 items-start">
+          <div className="shrink-0">
+            <PremiumCard
+              balance={card?.balance ?? 0}
+              cardNumber={card?.cardNumber ?? "4281"}
+              holder={card?.holder ?? ""}
+              isHidden={isHidden}
+              onToggleHidden={() => setIsHidden((v) => !v)}
+            />
+          </div>
+
           <button
             onClick={() => setIsAddBankOpen(true)}
-            className="min-w-[140px] h-44 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-3 text-muted hover:text-foreground hover:border-muted transition-all active:scale-95 group shrink-0"
+            className="w-[160px] h-44 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-3 text-muted hover:text-foreground hover:border-muted transition-all active:scale-95 group shrink-0"
           >
             <div className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center group-hover:scale-110 transition-transform">
               <Plus className="w-5 h-5" />
@@ -146,6 +116,7 @@ export default function Dashboard() {
           </button>
         </div>
       </section>
+
 
       {/* Quick Actions */}
       <QuickActions />

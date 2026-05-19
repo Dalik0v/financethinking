@@ -1,11 +1,35 @@
 "use client";
 
-import React from "react";
-import { ArrowLeft, Shield, Settings } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { ArrowLeft, Settings } from "lucide-react";
 import Link from "next/link";
-import { BankCard } from "@/components/shared/BankCard";
+import { apiFetch } from "@/lib/api";
+import { PremiumCard } from "@/components/shared/PremiumCard";
+import type { CardResponse } from "@/components/shared/types";
 
 export default function CardDetails() {
+  const [card, setCard] = useState<CardResponse | null>(null);
+  const [isHidden, setIsHidden] = useState(true);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      try {
+        const data = await apiFetch<CardResponse>("/card");
+        if (!isMounted) return;
+        setCard(data);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <div className="flex flex-col gap-8 pb-32">
       <header className="pt-16 px-6 flex items-center justify-between">
@@ -24,67 +48,24 @@ export default function CardDetails() {
         </Link>
       </header>
 
-      {/* Card Preview */}
       <section className="px-6 flex justify-center">
         <div className="relative w-full max-w-[420px]">
-          <div className="absolute inset-0 -z-10 rounded-[28px] bg-gradient-to-br from-accent/20 via-accent-orange/10 to-transparent blur-2xl shadow-accent-glow" />
-          <div className="glass rounded-[28px] p-4 shadow-premium/1">
-            <div className="flex justify-center">
-              <BankCard
-                variant="accent"
-                number="4281"
-                type="visa"
-                name="Salary Account"
-                balance="$12,400"
-              />
+          {loading || !card ? (
+            <div className="glass rounded-[28px] p-6 shadow-premium/1 animate-pulse">
+              <div className="h-44 rounded-[24px] bg-foreground/5" />
             </div>
-          </div>
+          ) : (
+            <PremiumCard
+              balance={card.balance}
+              cardNumber={card.cardNumber}
+              holder={card.holder}
+              isHidden={isHidden}
+              onToggleHidden={() => setIsHidden((v) => !v)}
+            />
+          )}
         </div>
       </section>
-
-      {/* Essential Info Cards */}
-      <section className="px-6 flex flex-col gap-3 items-center">
-        <div className="w-full max-w-[420px] glass rounded-[24px] border border-border/50 shadow-premium p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-black text-muted uppercase tracking-[2px]">
-                Balance
-              </p>
-              <p className="mt-2 text-xl font-bold tracking-tight">$12,400</p>
-            </div>
-
-            <div className="w-10 h-10 rounded-2xl bg-foreground/5 flex items-center justify-center text-accent">
-              {/* subtle decorative shield icon for premium feel */}
-              <Shield size={18} />
-            </div>
-          </div>
-        </div>
-
-        <div className="w-full max-w-[420px] glass rounded-[24px] border border-border/50 shadow-premium p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-black text-muted uppercase tracking-[2px]">
-                Insurance Status
-              </p>
-              <p className="mt-2 text-xl font-bold tracking-tight">Active</p>
-              <p className="mt-1 text-[12px] text-muted font-medium">
-                Coverage enabled for purchases
-              </p>
-            </div>
-
-            <div className="w-10 h-10 rounded-2xl bg-foreground/5 flex items-center justify-center text-accent">
-              <Shield size={18} />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Minimal bottom informational text */}
-      <footer className="px-6 mt-2">
-        <p className="text-center text-[12px] text-muted font-medium leading-relaxed">
-          Your card details are protected with secure transaction safeguards.
-        </p>
-      </footer>
     </div>
   );
 }
+

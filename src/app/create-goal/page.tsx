@@ -180,7 +180,8 @@ export default function CreateGoal() {
       </main>
 
       {/* Create Button */}
-      <div className="p-6 pb-8 absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border">
+      <div className="p-6 pb-[calc(2rem+env(safe-area-inset-bottom))] absolute bottom-20 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border">
+
         <button 
           onClick={handleCreateGoal}
           disabled={!isFormValid || isCreating}

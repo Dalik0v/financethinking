@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AIProject.Data;
 
+
 public sealed class ApplicationDbContext : DbContext
 {
     private static string TransactionTypeToString(TransactionType value)
@@ -39,13 +40,18 @@ public sealed class ApplicationDbContext : DbContext
 
     public DbSet<Transaction> Transactions => Set<Transaction>();
 
+    public DbSet<PaymentCard> Cards => Set<PaymentCard>();
+
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Transaction>(entity =>
+modelBuilder.Entity<Transaction>(entity =>
         {
             entity.ToTable("Transactions");
+
 
             entity.HasKey(e => e.Id);
 
@@ -70,6 +76,24 @@ public sealed class ApplicationDbContext : DbContext
 
 
         });
+
+        modelBuilder.Entity<PaymentCard>(entity =>
+        {
+            entity.ToTable("Cards");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Balance).HasPrecision(18, 2);
+            entity.Property(e => e.CardNumber).HasMaxLength(32).IsRequired();
+            entity.Property(e => e.Holder).HasMaxLength(100).IsRequired();
+
+            entity.Property(e => e.IsPrimary).IsRequired();
+
+            entity.Property(e => e.UserId).HasMaxLength(200);
+
+            // Helpful query index for primary card selection.
+            entity.HasIndex(e => e.IsPrimary);
+        });
     }
 }
+
 

@@ -9,7 +9,9 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
       "Content-Type": "application/json",
       ...(init?.headers ?? {}),
     },
+    cache: "no-store",
   });
+
 
 
   if (!response.ok) {
