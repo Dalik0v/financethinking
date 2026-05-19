@@ -5,6 +5,34 @@ namespace AIProject.Data;
 
 public sealed class ApplicationDbContext : DbContext
 {
+    private static string TransactionTypeToString(TransactionType value)
+    {
+        return value switch
+        {
+            TransactionType.Income => "Income",
+            TransactionType.Expense => "Expense",
+            TransactionType.Transfer => "Transfer",
+            _ => value.ToString()
+        };
+    }
+
+    private static TransactionType TransactionTypeFromString(string value)
+    {
+        var normalized = value?.Trim().ToLowerInvariant();
+
+        return normalized switch
+        {
+            "income" => TransactionType.Income,
+            "topup" => TransactionType.Income,
+            "uncategorized income" => TransactionType.Income,
+            "expense" => TransactionType.Expense,
+            "transfer" => TransactionType.Transfer,
+            _ => throw new InvalidOperationException($"Unknown TransactionType value from DB: '{value}'")
+        };
+    }
+
+
+
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
     }
@@ -30,10 +58,17 @@ public sealed class ApplicationDbContext : DbContext
                 .HasMaxLength(200);
 
             // Store enum as string for better readability/migrations.
+            // Backward compatibility:
+            // - old DB values: "TopUp" (-> Income), "Income", "Expense"
+            // - new canonical values: "Income", "Expense", "Transfer"
             entity.Property(e => e.Type)
-                .HasConversion<string>()
+                .HasConversion(
+                    v => TransactionTypeToString(v),
+                    v => TransactionTypeFromString(v))
                 .HasMaxLength(20)
                 .IsRequired();
+
+
         });
     }
 }

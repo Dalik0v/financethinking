@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: testq-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 130906
+      POSTGRES_DB: ai_project
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: testq-backend
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:5193
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=ai_project;Username=postgres;Password=130906
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "5193:5193"
+    volumes:
+      - ./AIProject:/src/AIProject
+      - ./AIProject/Migrations:/src/AIProject/Migrations
+      - ./AIProject/appsettings.json:/src/AIProject/appsettings.json
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: testq-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:5193
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - ./next.config.ts:/app/next.config.ts
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./eslint.config.mjs:/app/eslint.config.mjs
+      - ./postcss.config.mjs:/app/postcss.config.mjs
+      - frontend-node-modules:/app/node_modules
+      - frontend-next:/app/.next
+
+volumes:
+  postgres-data: {}
+  frontend-node-modules: {}
+  frontend-next: {}

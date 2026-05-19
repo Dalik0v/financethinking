@@ -6,6 +6,7 @@ import { BankCard } from "@/components/shared/BankCard";
 import { TransactionItem } from "@/components/shared/TransactionItem";
 import QuickActions from "@/components/layout/QuickActions";
 import { apiFetch } from "@/lib/api";
+import RecentActivity from "./RecentActivity";
 
 interface BankAccount {
   id: string;
@@ -57,7 +58,7 @@ export default function Dashboard() {
       try {
         // backend returns currentBalance
         const res = await apiFetch<TransactionsApiResponse>(
-          "/api/transactions?take=1&page=1"
+"/api/transactions?take=1&page=1"
         );
         if (!cancelled) setBalance(res.currentBalance);
       } catch (e: any) {
@@ -160,38 +161,9 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* NOTE: below is still static demo items. Transactions page (/transactions) is now live from DB. */}
-        <div className="space-y-3">
-          <Link href="/transactions" className="block">
-            <TransactionItem
-              title="Apple Store"
-              category="Electronics"
-              amount="-$1,299.00"
-              icon={<Search className="w-5 h-5 text-accent" />}
-            />
-          </Link>
-          <Link href="/transactions" className="block">
-            <TransactionItem
-              title="Monthly Salary"
-              category="Work"
-              amount="+$5,500.00"
-              isIncome
-            />
-          </Link>
-          <Link href="/transactions" className="block">
-            <TransactionItem
-              title="Starbucks"
-              category="Coffee"
-              amount="-$12.50"
-            />
-          </Link>
-          <Link href="/transactions" className="block">
-            <TransactionItem
-              title="Netflix"
-              category="Entertainment"
-              amount="-$15.99"
-            />
-          </Link>
+        <div>
+          {/* Live from backend */}
+          <RecentActivity />
         </div>
       </section>
 

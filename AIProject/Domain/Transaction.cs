@@ -5,9 +5,11 @@ namespace AIProject.Domain;
 
 public enum TransactionType
 {
-    Expense = 1,
-    TopUp = 2
+    Income,
+    Expense,
+    Transfer
 }
+
 
 public sealed class Transaction
 {

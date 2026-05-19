@@ -7,6 +7,7 @@
 ## Step 2 — Clean architecture + Options
 - [x] Create `OpenAIOptions` bound to `OpenAI` section
 - [ ] Refactor `AIService.cs` into production-ready implementation:
+
   - [ ] Define `IAIService`
   - [ ] Implement `OpenAiChatService` using official OpenAI SDK (gpt-4.1-mini)
   - [ ] Async/await, input validation

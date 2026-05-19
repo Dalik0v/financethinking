@@ -1,8 +1,5 @@
-- [ ] Redesign landing dashboard as futuristic minimal AI console
-  - [ ] Remove banking UI from `src/app/page.tsx` (BankCard, Total Balance, transactions, connect-bank modal)
-  - [ ] Add centered AI panel (AI Insight card, recommendation, confidence %, recent analysis, minimal activity history)
-  - [ ] Add AI interaction buttons: Analyze, Ask AI, Generate Insight, History
-  - [ ] Ensure no banking terminology/components are referenced on the landing page
-- [ ] Styling polish
-  - [ ] Verify glassmorphism, thin borders, subtle orange/red accent glow, cinematic dark gradients
-- [ ] Build/check Next.js compilation
+# TODO
+
+- [ ] Fix `src/lib/api.ts` to use SSR `backend:5193` and browser empty base (Next API gateway `/api/*`).
+- [ ] Run TypeScript/Next build or lint to ensure no runtime/compile errors.
+

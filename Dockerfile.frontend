@@ -1,0 +1,22 @@
+FROM node:20
+
+WORKDIR /app
+
+# Ensure writable Next.js artifact directory (prevents Windows mount permission issues)
+RUN mkdir -p /app/.next && chmod -R 777 /app
+
+# Install dependencies first for better caching
+COPY package*.json ./
+RUN npm ci
+
+# Copy source
+COPY . .
+
+# Dev server
+# bind to 0.0.0.0 so it is reachable from outside the container
+EXPOSE 3000
+
+# next dev supports env vars like NEXT_PUBLIC_API_URL
+CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0", "-p", "3000"]
+
+

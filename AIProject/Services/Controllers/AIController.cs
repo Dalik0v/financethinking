@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AIProject.Controllers;
 
 [ApiController]
-[Route("api/ai")]
+[Route("ai")]
 public class AIController : ControllerBase
 {
     private readonly IAIService _aiService;

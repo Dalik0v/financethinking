@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AIProject.Controllers;
 
 [ApiController]
-[Route("api/transactions")]
+[Route("transactions")]
 public sealed class TransactionsController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
@@ -99,7 +99,7 @@ public sealed class TransactionsController : ControllerBase
         _db.Transactions.Add(entity);
         await _db.SaveChangesAsync(cancellationToken);
 
-        return CreatedAtAction(nameof(GetByIdAsync), new { id = entity.Id }, ToResponseExpression(entity));
+        return Ok(ToResponseExpression(entity));
     }
 
     [HttpDelete("{id:int}")]
@@ -128,16 +128,18 @@ public sealed class TransactionsController : ControllerBase
 
     private async Task<decimal> CalculateCurrentBalanceAsync()
     {
-        // current balance = TopUps - Expenses
-        var topUps = await _db.Transactions.AsNoTracking()
-            .Where(x => x.Type == TransactionType.TopUp)
+        // current balance = Income - Expenses
+        var income = await _db.Transactions.AsNoTracking()
+            .Where(x => x.Type == TransactionType.Income)
             .SumAsync(x => (decimal?)x.Amount) ?? 0m;
+
 
         var expenses = await _db.Transactions.AsNoTracking()
             .Where(x => x.Type == TransactionType.Expense)
             .SumAsync(x => (decimal?)x.Amount) ?? 0m;
 
-        return topUps - expenses;
+        return income - expenses;
+
     }
 
     private async Task<decimal> CalculateMonthlyIncomeAsync(DateTime dateUtc)
@@ -146,9 +148,10 @@ public sealed class TransactionsController : ControllerBase
         var monthEnd = monthStart.AddMonths(1);
 
         return (await _db.Transactions.AsNoTracking()
-            .Where(x => x.Type == TransactionType.TopUp)
+            .Where(x => x.Type == TransactionType.Income)
             .Where(x => x.Date >= monthStart && x.Date < monthEnd)
             .SumAsync(x => (decimal?)x.Amount)) ?? 0m;
+
     }
 
     private async Task<decimal> CalculateMonthlyExpensesAsync(DateTime dateUtc)
