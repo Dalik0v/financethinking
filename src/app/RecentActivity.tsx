@@ -17,14 +17,6 @@ type TransactionResponseDto = {
   date: string;
 };
 
-type TransactionsApiResponse = {
-  currentBalance: number;
-  monthlyIncome: number;
-  monthlyExpenses: number;
-  totalCount: number;
-  recentTransactions: TransactionResponseDto[];
-};
-
 type Props = {
   apiFetch?: typeof apiFetchFn;
 };
@@ -32,6 +24,7 @@ type Props = {
 function formatAmount(amount: number, isIncome: boolean) {
   const abs = Math.abs(amount);
   const sign = isIncome ? "+" : "-";
+
   return `${sign}$${abs.toFixed(2)}`;
 }
 
@@ -52,8 +45,8 @@ export default function RecentActivity({
     try {
       setError(null);
 
-      const data = await apiFetch<TransactionsApiResponse>(
-        "/api/transactions?take=4&page=1",
+      const data = await apiFetch<TransactionResponseDto[]>(
+        "/transactions?take=4&page=1",
         {
           signal,
         }
@@ -61,11 +54,11 @@ export default function RecentActivity({
 
       console.log("LIVE API RESPONSE", data);
 
-      if (!data || !Array.isArray(data.recentTransactions)) {
+      if (!Array.isArray(data)) {
         throw new Error("Invalid transactions response");
       }
 
-      setItems(data.recentTransactions);
+      setItems(data);
     } catch (e) {
       if (signal?.aborted) return;
 
@@ -74,7 +67,7 @@ export default function RecentActivity({
           ? e.message
           : "Failed to load transactions";
 
-      console.error("RecentActivity error:", message);
+      console.error("RecentActivity error:", e);
 
       setError(message);
     } finally {
@@ -145,7 +138,7 @@ export default function RecentActivity({
   if (error) {
     return (
       <div className="text-sm text-red-400">
-        Failed to load transactions
+        {error}
       </div>
     );
   }
