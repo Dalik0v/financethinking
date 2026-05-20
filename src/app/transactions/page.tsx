@@ -5,7 +5,10 @@ import { ArrowLeft, Search, Filter, Download, ArrowUpRight, ArrowDownRight, Coff
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 
-type TransactionType = 1 | 2; // matches backend enum values
+type TransactionType = 0 | 1 | 2; // matches backend enum values
+
+
+
 
 type TransactionResponseDto = {
   id: number;
@@ -75,7 +78,7 @@ export default function Transactions() {
         setError(null);
 
         // take/page are supported by backend
-        const res = await apiFetch<TransactionsApiResponse>(`/api/transactions?take=200&page=1`);
+const res = await apiFetch<TransactionsApiResponse>(`/transactions?take=200&page=1`);
         if (!cancelled) setApiData(res);
       } catch (e: any) {
         if (!cancelled) setError(e?.message ?? "Failed to load transactions");
@@ -94,14 +97,16 @@ export default function Transactions() {
     const items = apiData?.recentTransactions ?? [];
 
     return items.map((t) => {
-      // backend: Expense=1, TopUp=2
-      const isIncome = t.type === 2;
-
+      // backend: Income=0, Expense=1, Transfer=2
+const isIncome = t.type === 0;
+      // Amount from backend is always stored as absolute value; we apply sign only for UI.
       return {
         id: t.id,
         title: t.description?.trim() ? t.description!.trim() : (t.category || "Transaction"),
         category: t.category,
+        // Use sign purely for UI; backend stores positive Amount.
         amount: isIncome ? Math.abs(t.amount) : -Math.abs(t.amount),
+
         dateLabel: formatDateLabel(t.date),
         isIncome,
         icon: pickIcon(t.category, isIncome),

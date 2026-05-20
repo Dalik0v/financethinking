@@ -1,11 +1,20 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5193";
 
+// Backend uses routes without /api prefix, e.g. /transactions, /card, /analytics/balance-history.
+// Keep frontend calls consistent to avoid 404s.
+function normalizePath(path: string) {
+  if (!path) return path;
+  // remove leading /api if present
+  return path.replace(/^\/api\b/, "");
+}
+
 export async function apiFetch<T>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(`${API_BASE_URL}${normalizePath(path)}`, {
+
     ...init,
     headers: {
       "Content-Type": "application/json",

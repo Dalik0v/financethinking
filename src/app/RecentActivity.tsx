@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { apiFetch as apiFetchFn } from "@/lib/api";
 
-type TransactionType = 1 | 2;
+type TransactionType = 0 | 1;
 
 type TransactionResponseDto = {
   id: number;
@@ -16,6 +16,19 @@ type TransactionResponseDto = {
   description?: string | null;
   date: string;
 };
+
+
+
+
+
+type TransactionsApiResponse = {
+  currentBalance: number;
+  monthlyIncome: number;
+  monthlyExpenses: number;
+  totalCount: number;
+  recentTransactions: TransactionResponseDto[];
+};
+
 
 type Props = {
   apiFetch?: typeof apiFetchFn;
@@ -45,7 +58,7 @@ export default function RecentActivity({
     try {
       setError(null);
 
-      const data = await apiFetch<TransactionResponseDto[]>(
+      const data = await apiFetch<TransactionsApiResponse>(
         "/transactions?take=4&page=1",
         {
           signal,
@@ -54,11 +67,14 @@ export default function RecentActivity({
 
       console.log("LIVE API RESPONSE", data);
 
-      if (!Array.isArray(data)) {
+      const recentTransactions = data?.recentTransactions;
+      if (!Array.isArray(recentTransactions)) {
         throw new Error("Invalid transactions response");
       }
 
-      setItems(data);
+      setItems(recentTransactions);
+
+
     } catch (e) {
       if (signal?.aborted) return;
 
@@ -108,10 +124,10 @@ export default function RecentActivity({
 
   const ui = useMemo(() => {
     return items.map((t) => {
-      const isExpense = t.type === 1;
-      const isIncome = !isExpense;
+      const isIncome = t.type === 0;
 
       const title = t.description?.trim()
+
         ? t.description.trim()
         : t.category || "Transaction";
 

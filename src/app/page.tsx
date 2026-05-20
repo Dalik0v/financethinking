@@ -34,7 +34,7 @@ export default function Dashboard() {
       try {
         // backend returns currentBalance
         const res = await apiFetch<TransactionsApiResponse>(
-"/api/transactions?take=1&page=1"
+"/transactions?take=1&page=1"
         );
         if (!cancelled) setBalance(res.currentBalance);
       } catch (e: any) {
