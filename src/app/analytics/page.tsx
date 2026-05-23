@@ -1,10 +1,29 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, TooltipProps } from "recharts";
-import { ArrowDownRight, ArrowUpRight, CalendarClock, ClipboardList, Sparkles, Wallet, Wallet2, Zap } from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  CalendarClock,
+  ClipboardList,
+  Sparkles,
+  Wallet,
+  Wallet2,
+  Zap,
+} from "lucide-react";
 
 import { apiFetch } from "@/lib/api";
+import AiButton from "@/components/ai/AiButton";
+import AiDrawer from "@/components/ai/AiDrawer";
 
 type Timeframe = "24H" | "7D" | "1M" | "3M" | "ALL";
 
@@ -60,17 +79,26 @@ function timeframeStartTs(tf: Timeframe) {
 
 type PremiumTooltipPayload = { value?: number };
 
-function PremiumTooltip({ active, payload, label }: { active?: boolean; payload?: PremiumTooltipPayload[]; label?: string }) {
+function PremiumTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: PremiumTooltipPayload[];
+  label?: string;
+}) {
   if (!active || !payload || !payload.length) return null;
 
   const balance = payload[0]?.value;
   const dateLabel = typeof label === "string" ? label : "";
 
-
   return (
     <div className="rounded-2xl border border-border/60 bg-black/60 backdrop-blur-xl px-3 py-2 shadow-lg shadow-accent-glow/10">
       <div className="text-[10px] font-bold text-muted uppercase tracking-widest">{dateLabel}</div>
-      <div className="mt-1 text-sm font-black tabular-nums">{formatUsd(typeof balance === "number" ? balance : 0)}</div>
+      <div className="mt-1 text-sm font-black tabular-nums">
+        {formatUsd(typeof balance === "number" ? balance : 0)}
+      </div>
     </div>
   );
 }
@@ -102,7 +130,9 @@ function PremiumStatCard({
           </div>
 
           {trend ? (
-            <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest ${trendColor}`}>
+            <div
+              className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest ${trendColor}`}
+            >
               <TrendIcon size={12} className="opacity-90" />
               {trend.pct.toFixed(1)}%
             </div>
@@ -128,6 +158,8 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<BalanceHistoryPoint[]>([]);
+
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -172,6 +204,7 @@ export default function AnalyticsPage() {
 
   const balanceChange = useMemo(() => {
     if (chartPoints.length < 2) return { pct: 0, dir: "up" as const };
+
     const start = timeframeStartTs(timeframe);
     const windowPts = chartPoints.filter((p) => p.ts >= start);
     if (windowPts.length < 2) return { pct: 0, dir: "up" as const };
@@ -272,7 +305,12 @@ export default function AnalyticsPage() {
                       </linearGradient>
                     </defs>
 
-                    <XAxis dataKey="dateLabel" tickLine={false} axisLine={false} tick={{ fill: "#6b7280", fontSize: 11, fontWeight: 700 }} />
+                    <XAxis
+                      dataKey="dateLabel"
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: "#6b7280", fontSize: 11, fontWeight: 700 }}
+                    />
                     <YAxis tickLine={false} axisLine={false} tick={{ fill: "transparent" }} domain={["auto", "auto"]} />
                     <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 6" vertical={false} />
 
@@ -321,7 +359,7 @@ export default function AnalyticsPage() {
             value={`${balanceChange.pct >= 0 ? "+" : "-"}${Math.abs(balanceChange.pct).toFixed(1)}%`}
             sub={`over ${timeframe}`}
             icon={<TrendingUpFakeIcon />}
-trend={{ dir: balanceChange.dir === "up" ? "up" : "down", pct: Math.abs(balanceChange.pct) }}
+            trend={{ dir: balanceChange.dir === "up" ? "up" : "down", pct: Math.abs(balanceChange.pct) }}
           />
           <PremiumStatCard
             title="Transactions"
@@ -353,6 +391,10 @@ trend={{ dir: balanceChange.dir === "up" ? "up" : "down", pct: Math.abs(balanceC
           </div>
         </div>
       </div>
+
+      {/* AI overlay layer (fixed) must be last so dashboard layout stays unchanged */}
+      <AiButton onClick={() => setOpen(true)} badgeCount={3} />
+      <AiDrawer open={open} onClose={() => setOpen(false)} />
     </div>
   );
 }

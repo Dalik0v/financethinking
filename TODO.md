@@ -1,7 +1,11 @@
-- [ ] 1) Проверить текущую реализацию API в src/lib/api.ts (done)
-- [ ] 2) Составить план правок под нужный API URL / порт
-- [ ] 3) После подтверждения: обновить src/lib/api.ts на чтение NEXT_PUBLIC_API_URL и дефолт http://localhost:5193
-- [ ] 4) Добавить/проверить .env.local: NEXT_PUBLIC_API_URL=http://localhost:5193
-- [ ] 5) Обновить код/проверить использование apiFetch('/analytics/balance-history') (done)
-- [ ] 6) Перезапустить npm run dev и быстро проверить URL напрямую
+# Task TODO
+
+- [ ] Gather & verify current AI overlay components (AiButton/AiDrawer) and their styling requirements
+- [ ] Inspect Analytics page to ensure we don’t change dashboard layout/cards/chart/bottom nav/spacing
+- [ ] Implement AI as floating action button + fixed overlay drawer on top of Analytics page
+- [ ] Ensure overlay does not push layout: drawer/backdrop are `fixed` and don’t affect container widths
+- [ ] Verify `framer-motion` animations remain intact
+- [ ] Run lint/build (if available) to ensure no TS/React errors
+- [ ] (Planned) Wire AiButton + AiDrawer into /src/app/analytics/page.tsx without touching existing dashboard structure
+
 
