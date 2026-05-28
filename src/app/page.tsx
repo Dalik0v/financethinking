@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Bell, Plus, Search, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { PremiumCard } from "@/components/shared/PremiumCard";
 
 import type { CardResponse } from "@/components/shared/types";
@@ -32,9 +32,8 @@ export default function Dashboard() {
 
     async function run() {
       try {
-        // backend returns currentBalance
         const res = await apiFetch<TransactionsApiResponse>(
-"/transactions?take=1&page=1"
+          "/transactions?take=1&page=1"
         );
         if (!cancelled) setBalance(res.currentBalance);
       } catch (e: any) {
@@ -83,11 +82,6 @@ export default function Dashboard() {
             </p>
           ) : null}
         </div>
-        <Link href="/notifications">
-          <button className="w-12 h-12 bg-card rounded-full flex items-center justify-center border border-border active:scale-90 transition-all shadow-premium hover:bg-card/80">
-            <Bell className="w-5 h-5 text-foreground" />
-          </button>
-        </Link>
       </header>
 
       {/* Bank Cards */}
@@ -117,7 +111,6 @@ export default function Dashboard() {
         </div>
       </section>
 
-
       {/* Quick Actions */}
       <QuickActions />
 
@@ -133,12 +126,11 @@ export default function Dashboard() {
         </div>
 
         <div>
-          {/* Live from backend */}
           <RecentActivity />
         </div>
       </section>
 
-      {/* Add Bank Modal Simulation */}
+      {/* Add Bank Modal */}
       {isAddBankOpen && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
           <div
@@ -264,4 +256,3 @@ function BankOption({
     </button>
   );
 }
-

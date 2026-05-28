@@ -40,10 +40,5 @@
         <member name="M:AIProject.Migrations.AddTransactionsTable.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
-        <member name="T:AIProject.Services.AIService">
-            <summary>
-            Clean architecture service implementation that calls the official OpenAI .NET SDK.
-            </summary>
-        </member>
     </members>
 </doc>
