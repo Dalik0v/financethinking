@@ -6,7 +6,7 @@ import BottomNav from "@/components/layout/BottomNav";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Fintech Tracker",
+  title: "FinanceThink",
   description: "Minimalist banking application",
 };
 
