@@ -51,3 +51,7 @@ AIProject.http
 # Не нужные файлы
 cd
 CREATE
+
+query
+testq.sln
+AGENTS.md
