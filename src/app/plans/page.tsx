@@ -1,11 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Target, PiggyBank, Briefcase, TrendingUp } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Target, PiggyBank, Briefcase, Car, Home, Plane, GraduationCap, Heart, Laptop, Gift, TrendingUp } from "lucide-react";
 import AiTipCard from "@/components/plans/AiTipCard";
 import PlanCard from "@/components/plans/PlanCard";
 import FloatingAddButton from "@/components/plans/FloatingAddButton";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api";
+
+interface GoalDto {
+  id: string;
+  name: string;
+  targetAmount: number;
+  savedAmount: number;
+  category: string;
+  deadline?: string;
+  createdAt: string;
+  progressPercent: number;
+}
 
 interface Plan {
   id: string;
@@ -18,15 +30,15 @@ interface Plan {
   deadline?: string;
 }
 
-const CATEGORY_ICONS: Record<string, any> = {
-  Car: <Briefcase size={20} />,
-  Home: <Briefcase size={20} />,
-  Travel: <Briefcase size={20} />,
-  Education: <Briefcase size={20} />,
-  Health: <Briefcase size={20} />,
-  Tech: <Briefcase size={20} />,
-  Gift: <Briefcase size={20} />,
-  Other: <Briefcase size={20} />,
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  Car: <Car size={20} />,
+  Home: <Home size={20} />,
+  Travel: <Plane size={20} />,
+  Education: <GraduationCap size={20} />,
+  Health: <Heart size={20} />,
+  Tech: <Laptop size={20} />,
+  Gift: <Gift size={20} />,
+  Other: <Target size={20} />,
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -40,85 +52,71 @@ const CATEGORY_COLORS: Record<string, string> = {
   Other: "text-primary",
 };
 
-const INITIAL_PLANS: Plan[] = [
-  { id: "1", title: "New Car", goal: 45000, saved: 12400, icon: <Briefcase size={20} />, color: "text-blue-400" },
-  { id: "2", title: "Emergency Fund", goal: 10000, saved: 8200, icon: <PiggyBank size={20} />, color: "text-green-400" },
-  { id: "3", title: "Vacation", goal: 5000, saved: 1200, icon: <Target size={20} />, color: "text-primary" },
-];
+function goalToplan(g: GoalDto): Plan {
+  return {
+    id: g.id,
+    title: g.name,
+    goal: g.targetAmount,
+    saved: g.savedAmount,
+    icon: CATEGORY_ICONS[g.category] ?? <Target size={20} />,
+    color: CATEGORY_COLORS[g.category] ?? "text-primary",
+    category: g.category,
+    deadline: g.deadline,
+  };
+}
 
 export default function Plans() {
   const router = useRouter();
-  const [plans, setPlans] = useState<Plan[]>(INITIAL_PLANS);
-  const [isAddPlanOpen, setIsAddPlanOpen] = useState(false);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [savingsAmount, setSavingsAmount] = useState("");
+  const [isDepositing, setIsDepositing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load goals from localStorage on mount
-  useEffect(() => {
-    const storedGoals = localStorage.getItem("goals");
-    if (storedGoals) {
-      const goals = JSON.parse(storedGoals);
-      const mappedPlans = goals.map((g: any) => ({
-        id: g.id,
-        title: g.name,
-        goal: g.targetAmount,
-        saved: g.saved,
-        icon: CATEGORY_ICONS[g.category] || CATEGORY_ICONS.Other,
-        color: CATEGORY_COLORS[g.category] || CATEGORY_COLORS.Other,
-        category: g.category,
-        deadline: g.deadline,
-      }));
-      
-      // Dedupe by id (keep last occurrence)
-      const uniqueMappedPlans = Array.from(new Map((mappedPlans as Plan[]).map(p => [p.id, p])).values()) as Plan[];
-      const uniqueInitialPlans = Array.from(new Map((INITIAL_PLANS as Plan[]).map(p => [p.id, p])).values()) as Plan[];
-      
-      if (uniqueMappedPlans.length > 0) {
-        setPlans([...uniqueInitialPlans, ...uniqueMappedPlans]);
-      }
-
-
+  const loadGoals = useCallback(async () => {
+    try {
+      const goals = await apiFetch<GoalDto[]>("/goals");
+      setPlans(goals.map(goalToplan));
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to load goals");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  const handleAddSavings = () => {
+  useEffect(() => {
+    loadGoals();
+  }, [loadGoals]);
+
+  const handleAddSavings = async () => {
     const amount = parseFloat(savingsAmount);
     if (isNaN(amount) || amount <= 0 || !selectedPlanId) return;
 
-    // Update local state
-    const updatedPlans = plans.map(p => 
-      p.id === selectedPlanId ? { ...p, saved: Math.min(p.goal, p.saved + amount) } : p
-    );
-    setPlans(updatedPlans);
-    
-    // Update localStorage - find the goal by ID
-const storedGoals = JSON.parse(localStorage.getItem("goals") || "[]");
-    const goalIndex = storedGoals.findIndex((g: any) => g.id === selectedPlanId);
-    if (goalIndex >= 0) {
-      storedGoals[goalIndex].saved = Math.min(storedGoals[goalIndex].targetAmount, storedGoals[goalIndex].saved + amount);
-      localStorage.setItem("goals", JSON.stringify(storedGoals));
+    setIsDepositing(true);
+    try {
+      const updated = await apiFetch<GoalDto>(`/goals/${selectedPlanId}/deposit`, {
+        method: "PATCH",
+        body: JSON.stringify({ amount }),
+      });
+      setPlans(prev => prev.map(p => p.id === selectedPlanId ? goalToplan(updated) : p));
+      setSelectedPlanId(null);
+      setSavingsAmount("");
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to deposit");
+    } finally {
+      setIsDepositing(false);
     }
-
-    setSelectedPlanId(null);
-    setSavingsAmount("");
   };
 
-const handleAction = () => {
-    // Navigate to the Emergency Fund plan
-    setSelectedPlanId("2");
-  };
-
-  const handleDeleteGoal = (id: string) => {
-    // Remove from localStorage
-    const storedGoals = JSON.parse(localStorage.getItem("goals") || "[]");
-    const updatedGoals = storedGoals.filter((g: any) => g.id !== id);
-    localStorage.setItem("goals", JSON.stringify(updatedGoals));
-
-    // Remove from state
-    setPlans(plans.filter(p => p.id !== id));
-
-    // Close modal if open
-    setSelectedPlanId(null);
+  const handleDeleteGoal = async (id: string) => {
+    try {
+      await apiFetch(`/goals/${id}`, { method: "DELETE" });
+      setPlans(prev => prev.filter(p => p.id !== id));
+      setSelectedPlanId(null);
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to delete goal");
+    }
   };
 
   return (
@@ -131,25 +129,32 @@ const handleAction = () => {
         <FloatingAddButton onClick={() => router.push("/create-goal")} />
       </header>
 
-      {/* Collapsible AI Tip - Default Collapsed */}
-      <AiTipCard 
+      <AiTipCard
         tip="You can reach your Emergency Fund goal 2 months faster if you save $50 more weekly."
         highlight="Emergency Fund"
-        onAction={handleAction}
+        onAction={() => {}}
       />
 
-{/* Plans List */}
       <div className="px-6 grid gap-4">
+        {loading && (
+          <p className="text-muted text-sm text-center py-8">Loading goals...</p>
+        )}
+        {!loading && plans.length === 0 && (
+          <p className="text-muted text-sm text-center py-8">No goals yet. Tap + to create one!</p>
+        )}
         {plans.map((plan, index) => (
-          <PlanCard 
+          <PlanCard
             key={`plan-${plan.id}-${index}`}
             plan={plan}
             onClick={() => setSelectedPlanId(plan.id)}
             onDelete={handleDeleteGoal}
           />
         ))}
-
       </div>
+
+      {error && (
+        <p className="text-red-400 text-sm text-center px-6">{error}</p>
+      )}
 
       {/* Add Savings Modal */}
       {selectedPlanId && (
@@ -159,7 +164,7 @@ const handleAction = () => {
             <h2 className="text-2xl font-bold mb-6">Add Savings</h2>
             <div className="relative mb-8">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted">$</span>
-              <input 
+              <input
                 type="number"
                 value={savingsAmount}
                 onChange={(e) => setSavingsAmount(e.target.value)}
@@ -168,31 +173,12 @@ const handleAction = () => {
                 className="w-full bg-foreground/5 border border-border rounded-2xl py-6 pl-12 pr-6 text-3xl font-black focus:border-primary outline-none transition-all"
               />
             </div>
-            <button 
+            <button
               onClick={handleAddSavings}
-              className="w-full bg-primary text-white py-4 rounded-2xl font-bold shadow-accent-glow active:scale-[0.98] transition-all"
+              disabled={isDepositing}
+              className="w-full bg-primary text-white py-4 rounded-2xl font-bold shadow-accent-glow active:scale-[0.98] transition-all disabled:opacity-50"
             >
-              Confirm Deposit
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Add New Plan Modal */}
-      {isAddPlanOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsAddPlanOpen(false)} />
-          <div className="bg-card border border-border w-full max-w-sm rounded-3xl p-8 relative shadow-premium text-center">
-            <div className="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
-              <TrendingUp size={40} />
-            </div>
-            <h2 className="text-2xl font-bold mb-2">New Savings Plan</h2>
-            <p className="text-muted text-sm mb-8">Define your goal and start saving today!</p>
-            <button 
-              onClick={() => setIsAddPlanOpen(false)}
-              className="w-full bg-primary text-white py-4 rounded-2xl font-bold transition-all"
-            >
-              Got it
+              {isDepositing ? "Saving..." : "Confirm Deposit"}
             </button>
           </div>
         </div>

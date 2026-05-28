@@ -37,7 +37,7 @@ services:
     depends_on:
       - backend
     environment:
-      NEXT_PUBLIC_API_URL: https://api.danilanet.id.lv
+      NEXT_PUBLIC_API_URL: http://localhost:5193
       CHOKIDAR_USEPOLLING: "true"
     ports:
       - "3000:3000"

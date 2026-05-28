@@ -94,31 +94,21 @@ export default function RecentActivity({
 
   useEffect(() => {
     let mounted = true;
-
     const controller = new AbortController();
 
-    const start = async () => {
+    const refresh = async () => {
       if (!mounted) return;
-
       await load(controller.signal);
     };
 
-    start();
+    refresh();
 
-    const interval = window.setInterval(() => {
-      if (!mounted || inFlightRef.current) return;
-
-      const intervalController = new AbortController();
-
-      load(intervalController.signal);
-    }, 5000);
+    window.addEventListener("transaction:created", refresh);
 
     return () => {
       mounted = false;
-
       controller.abort();
-
-      window.clearInterval(interval);
+      window.removeEventListener("transaction:created", refresh);
     };
   }, [apiFetch]);
 

@@ -11,7 +11,7 @@ export default function BottomNav() {
   const navItems = [
     { icon: <Home />, label: "Home", href: "/" },
     { icon: <Target />, label: "Plans", href: "/plans" },
-    { icon: <Plus />, label: "Create", href: "/create-goal", isCenter: true },
+    { icon: <Plus />, label: "Create", href: "/create-transaction", isCenter: true },
     { icon: <Lightbulb />, label: "Insights", href: "/analytics" },
     { icon: <Settings />, label: "Settings", href: "/settings" },
   ];

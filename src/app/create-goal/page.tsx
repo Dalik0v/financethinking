@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { ArrowLeft, Target, Calendar, Car, Home, Plane, GraduationCap, Heart, Laptop, Gift, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api";
 
 const CATEGORIES = [
   { id: "car", name: "Car", icon: <Car size={20} />, color: "bg-blue-500" },
@@ -34,7 +35,7 @@ export default function CreateGoal() {
   const [customCategory, setCustomCategory] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
-  const handleCreateGoal = () => {
+  const handleCreateGoal = async () => {
     if (!goalName.trim() || !targetAmount || !selectedCategory) return;
     if (selectedCategory === "other" && !customCategory.trim()) return;
 
@@ -44,21 +45,21 @@ export default function CreateGoal() {
       ? customCategory
       : CATEGORIES.find(c => c.id === selectedCategory)?.name || "Other";
 
-    const newGoal: Goal = {
-      id: crypto.randomUUID(),
-      name: goalName.trim(),
-      targetAmount: parseFloat(targetAmount),
-      deadline,
-      category: finalCategory,
-      saved: 0,
-    };
-
-    const existingGoals = JSON.parse(localStorage.getItem("goals") || "[]");
-    localStorage.setItem("goals", JSON.stringify([...existingGoals, newGoal]));
-
-    setTimeout(() => {
+    try {
+      await apiFetch("/goals", {
+        method: "POST",
+        body: JSON.stringify({
+          name: goalName.trim(),
+          targetAmount: parseFloat(targetAmount),
+          category: finalCategory,
+          deadline: deadline ? new Date(deadline).toISOString() : null,
+        }),
+      });
       router.push("/plans");
-    }, 500);
+    } catch (e: any) {
+      alert(e?.message ?? "Failed to create goal");
+      setIsCreating(false);
+    }
   };
 
   const isFormValid = goalName.trim() && targetAmount && selectedCategory &&
