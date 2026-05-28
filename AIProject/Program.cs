@@ -18,7 +18,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .WithOrigins("http://localhost:3000")
+            .WithOrigins(
+                "http://localhost:3000",
+                "https://danilanet.id.lv"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -33,7 +36,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 var app = builder.Build();
 
-// Ensure schema exists on startup (prevents runtime failures when migrations were not applied)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -42,24 +44,17 @@ using (var scope = app.Services.CreateScope())
 
 app.UseCors("AllowFrontend");
 
-// Swagger JSON
 app.UseSwagger(c =>
 {
     c.RouteTemplate = "swagger/{documentName}/swagger.json";
 });
 
-// Swagger UI
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "AIProject API V1");
     c.RoutePrefix = "swagger";
 });
 
-// app.UseHttpsRedirection();
-
 app.MapControllers();
 
 app.Run();
-
-
-

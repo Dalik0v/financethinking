@@ -1,8 +1,5 @@
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5193";
-
-// Backend uses routes without /api prefix, e.g. /transactions, /card, /analytics/balance-history.
-// Keep frontend calls consistent to avoid 404s.
+  process.env.NEXT_PUBLIC_API_URL ?? "https://api.danilanet.id.lv";
 function normalizePath(path: string) {
   if (!path) return path;
   // remove leading /api if present
