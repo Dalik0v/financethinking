@@ -25,7 +25,6 @@ services:
     ports:
       - "5193:5193"
     volumes:
-      - ./AIProject:/src/AIProject
       - ./AIProject/Migrations:/src/AIProject/Migrations
       - ./AIProject/appsettings.json:/src/AIProject/appsettings.json
 
