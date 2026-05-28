@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { 
   User, 
-  CreditCard, 
   LogOut, 
   ChevronRight,
   ShieldCheck,
@@ -22,7 +21,6 @@ export default function Settings() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
-  // Profile state
   const [displayName, setDisplayName] = useState("John Doe");
   const [initials, setInitials] = useState("JD");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -56,14 +54,12 @@ export default function Settings() {
       }
     }
 
-    // Derive initials from name
     const parts = displayName.trim().split(" ");
     const derived = parts.length >= 2
       ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
       : displayName.slice(0, 2).toUpperCase();
     setInitials(derived);
 
-    // Reset password fields
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
@@ -80,7 +76,6 @@ export default function Settings() {
         <p className="text-muted text-sm font-medium">Manage your profile and preferences</p>
       </header>
 
-      {/* Profile Section */}
       <section className="px-6">
         <div className="bg-card border border-border p-6 rounded-[32px] flex items-center justify-between shadow-premium group">
           <div className="flex items-center gap-4">
@@ -107,15 +102,12 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* Settings Groups */}
       <div className="px-6 space-y-8">
         <SettingsGroup title="Account">
           <div onClick={() => setIsEditingProfile(true)}>
             <SettingsItem icon={<User size={20} />} label="Personal Information" />
           </div>
-          <Link href="/plans">
-            <SettingsItem icon={<CreditCard size={20} />} label="Linked Banks & Cards" badge="3" />
-          </Link>
+
         </SettingsGroup>
 
         <SettingsGroup title="Preferences">
@@ -138,15 +130,13 @@ export default function Settings() {
       </div>
 
       <div className="px-6 text-center">
-        <p className="text-[10px] text-muted font-bold uppercase tracking-[4px]">Version 2.4.0 (2024)</p>
+        <p className="text-[10px] text-muted font-bold uppercase tracking-[4px]">Version 1.0.0 (2026)</p>
       </div>
 
-      {/* Personal Information Modal */}
       {isEditingProfile && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsEditingProfile(false)} />
           <div className="bg-card border border-border w-full max-w-sm rounded-[40px] p-8 relative shadow-premium animate-in slide-in-from-bottom-10 duration-300 z-10">
-            {/* Header */}
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-xl font-bold">Personal Information</h2>
               <button
@@ -157,7 +147,6 @@ export default function Settings() {
               </button>
             </div>
 
-            {/* Avatar preview */}
             <div className="flex justify-center mb-8">
               <div className="relative">
                 <div className="w-20 h-20 bg-gradient-to-tr from-accent to-accent-orange rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-accent-glow">
@@ -170,7 +159,6 @@ export default function Settings() {
             </div>
 
             <div className="space-y-4">
-              {/* Name */}
               <div>
                 <label className="text-[10px] font-black text-muted uppercase tracking-[2px] ml-1 mb-2 block">
                   Full Name
@@ -184,14 +172,12 @@ export default function Settings() {
                 />
               </div>
 
-              {/* Divider */}
               <div className="border-t border-border/50 pt-4">
                 <p className="text-[10px] font-black text-muted uppercase tracking-[2px] ml-1 mb-4">
                   Change Password
                 </p>
 
                 <div className="space-y-3">
-                  {/* Current password */}
                   <div className="relative">
                     <input
                       type={showCurrentPw ? "text" : "password"}
@@ -208,7 +194,6 @@ export default function Settings() {
                     </button>
                   </div>
 
-                  {/* New password */}
                   <div className="relative">
                     <input
                       type={showNewPw ? "text" : "password"}
@@ -225,7 +210,6 @@ export default function Settings() {
                     </button>
                   </div>
 
-                  {/* Confirm password */}
                   <div className="relative">
                     <input
                       type={showConfirmPw ? "text" : "password"}
@@ -244,12 +228,10 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Error */}
               {profileError && (
                 <p className="text-xs text-red-400 font-bold ml-1">{profileError}</p>
               )}
 
-              {/* Save button */}
               <button
                 onClick={handleSaveProfile}
                 className="w-full py-4 bg-accent text-white rounded-2xl font-bold shadow-accent-glow hover:opacity-90 transition-all active:scale-95 mt-2"
@@ -261,7 +243,6 @@ export default function Settings() {
         </div>
       )}
 
-      {/* Success Toast */}
       {showSavedToast && (
         <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-10 duration-300">
           <div className="bg-success text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3 font-bold text-sm">
@@ -271,7 +252,6 @@ export default function Settings() {
         </div>
       )}
 
-      {/* Logout Dialog */}
       {isLoggingOut && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsLoggingOut(false)} />
