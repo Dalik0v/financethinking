@@ -33,6 +33,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 var app = builder.Build();
 
+// Ensure schema exists on startup (prevents runtime failures when migrations were not applied)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.EnsureCreated();
+}
+
 app.UseCors("AllowFrontend");
 
 // Swagger JSON

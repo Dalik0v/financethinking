@@ -28,6 +28,18 @@
         <member name="M:AIProject.Migrations.AddCardsTable.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
+        <member name="T:AIProject.Migrations.AddTransactionsTable">
+            <inheritdoc />
+        </member>
+        <member name="M:AIProject.Migrations.AddTransactionsTable.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:AIProject.Migrations.AddTransactionsTable.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:AIProject.Migrations.AddTransactionsTable.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
         <member name="T:AIProject.Services.AIService">
             <summary>
             Clean architecture service implementation that calls the official OpenAI .NET SDK.
