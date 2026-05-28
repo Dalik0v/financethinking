@@ -4,9 +4,6 @@ import React, { useState } from "react";
 import { 
   User, 
   CreditCard, 
-  Smartphone, 
-  Bell, 
-  Lock, 
   HelpCircle, 
   LogOut, 
   ChevronRight,
@@ -70,12 +67,9 @@ export default function Settings() {
           <Link href="/plans">
             <SettingsItem icon={<CreditCard size={20} />} label="Linked Banks & Cards" badge="3" />
           </Link>
-          <SettingsItem icon={<Smartphone size={20} />} label="Connected Devices" />
         </SettingsGroup>
 
-<SettingsGroup title="Preferences">
-          <SettingsItem icon={<Bell size={20} />} label="Notifications" hasToggle />
-          <SettingsItem icon={<Lock size={20} />} label="Security & Privacy" />
+        <SettingsGroup title="Preferences">
           <div className="flex items-center justify-between p-5">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 bg-foreground/5 rounded-xl flex items-center justify-center text-foreground">
