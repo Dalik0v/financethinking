@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# .NET build output
+**/bin/
+**/obj/
+
+# IDE
+*.lsache
+AIProject.http
+
+# Не нужные файлы
+cd
+CREATE
