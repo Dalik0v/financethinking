@@ -28,16 +28,9 @@
 | 🔐 **Authentication** | JWT-based login and registration |
 | ☁️ **Public URL** | Deployed via Cloudflare Tunnel |
 
----
-
 ## 🏗️ Architecture
 
-```
-<img width="1024" height="528" alt="image" src="https://github.com/user-attachments/assets/e5cd3f2d-1349-406f-9777-804186a2b164" />
-
-```
-
----
+![Architecture Diagram](https://github.com/user-attachments/assets/e5cd3f2d-1349-406f-9777-804186a2b164)
 
 ## 🛠️ Tech Stack
 
