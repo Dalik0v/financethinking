@@ -33,29 +33,8 @@
 ## 🏗️ Architecture
 
 ```
-graph TD
-    %% Стилизация узлов
-    classDef client fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px;
-    classDef proxy fill:#eceff1,stroke:#607d8b,stroke-width:2px;
-    classDef frontend fill:#e8f5e9,stroke:#4caf50,stroke-width:2px;
-    classDef backend fill:#fff3e0,stroke:#ff9800,stroke-width:2px;
-    classDef db fill:#fce4ec,stroke:#e91e63,stroke-width:2px;
-    classDef ai fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px;
+<img width="1024" height="528" alt="image" src="https://github.com/user-attachments/assets/e5cd3f2d-1349-406f-9777-804186a2b164" />
 
-    %% Узлы сети
-    Browser("🌐 Browser<br><b>danilanet.id.lv</b>"):::client
-    CF("☁️ Cloudflare Tunnel"):::proxy
-    Next("⚛️ Next.js<br><small>Port 3000</small>"):::frontend
-    API("⚙️ ASP.NET Core<br><small>Port 5193</small>"):::backend
-    DB("🗄️ PostgreSQL<br><small>(Transactions, Cards)</small>"):::db
-    OpenAI("🤖 OpenAI API<br><small>(GPT-4.1-mini)</small>"):::ai
-
-    %% Связи
-    Browser --> CF
-    CF --> Next
-    CF --> API
-    API --> DB
-    API --> OpenAI
 ```
 
 ---
