@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { apiFetch } from "@/lib/api";
@@ -9,7 +8,6 @@ import { apiFetch } from "@/lib/api";
 type AuthResponse = { token: string; fullName: string; email: string };
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -38,7 +36,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Top nav */}
       <nav className="flex items-center justify-between px-8 py-5">
         <div className="flex items-center gap-3">
           <div suppressHydrationWarning className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center text-white font-black text-sm">F</div>

@@ -22,21 +22,17 @@ function setCookieTheme(theme: ThemeId) {
 }
 
 export default function ThemeSelector() {
-  const [activeTheme, setActiveTheme] = useState<ThemeId>("dark");
+  const [activeTheme, setActiveTheme] = useState<ThemeId>(() => {
+    if (typeof document === "undefined") return "dark";
+    return getCookieTheme() || (document.documentElement.getAttribute("data-theme") as ThemeId) || "dark";
+  });
 
   useEffect(() => {
-    const saved = getCookieTheme();
-    const current = (document.documentElement.getAttribute("data-theme") as ThemeId) || "dark";
-    const theme = saved || current;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    setActiveTheme(theme);
-    document.documentElement.setAttribute("data-theme", theme);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    document.documentElement.setAttribute("data-theme", activeTheme);
+  }, [activeTheme]);
 
   const handleThemeSelect = (themeId: ThemeId) => {
     setActiveTheme(themeId);
-    document.documentElement.setAttribute("data-theme", themeId);
     setCookieTheme(themeId);
   };
 
@@ -64,15 +60,14 @@ export default function ThemeSelector() {
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useState<ThemeId>("dark");
+  const [theme, setTheme] = useState<ThemeId>(() => {
+    if (typeof document === "undefined") return "dark";
+    return getCookieTheme() || (document.documentElement.getAttribute("data-theme") as ThemeId) || "dark";
+  });
 
   useEffect(() => {
-    const saved = getCookieTheme();
-    const current = (document.documentElement.getAttribute("data-theme") as ThemeId) || "dark";
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    setTheme(saved || current);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
   return theme;
 }

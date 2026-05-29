@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, BarChart2, Wallet, Bot, ShieldCheck } from "lucide-react";
 import { apiFetch } from "@/lib/api";
@@ -9,7 +8,6 @@ import { apiFetch } from "@/lib/api";
 type AuthResponse = { token: string; fullName: string; email: string };
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,7 +44,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Top nav */}
       <nav className="flex items-center justify-between px-8 py-5">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center text-white font-black text-sm">F</div>
@@ -58,7 +55,6 @@ export default function RegisterPage() {
       </nav>
 
       <div className="flex flex-1 items-center justify-center px-6 py-10 gap-16 max-w-6xl mx-auto w-full">
-        {/* Left — hero */}
         <div className="flex-1 hidden md:flex flex-col gap-8">
           <div>
             <p className="text-accent text-xs font-bold uppercase tracking-widest mb-3">Welcome to</p>
@@ -89,7 +85,6 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* Right — form */}
         <div className="w-full max-w-md bg-card border border-border rounded-3xl p-8 shadow-premium">
           <h2 className="text-2xl font-black mb-1">Create your account</h2>
           <p className="text-muted text-sm mb-7">Start your journey to financial freedom</p>

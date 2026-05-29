@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Target, Car, Home, Plane, GraduationCap, Heart, Laptop, Gift } from "lucide-react";
 import AiTipCard from "@/components/plans/AiTipCard";
 import PlanCard from "@/components/plans/PlanCard";
 import FloatingAddButton from "@/components/plans/FloatingAddButton";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
-import { useEffect } from "react";
 
 interface GoalDto {
   id: string;
@@ -87,8 +86,9 @@ export default function Plans() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     loadGoals();
-  }, [loadGoals]);
+  }, []);
 
   const handleAddSavings = async () => {
     const amount = parseFloat(savingsAmount);
@@ -137,9 +137,7 @@ export default function Plans() {
       />
 
       <div className="px-6 grid gap-4">
-        {loading && (
-          <p className="text-muted text-sm text-center py-8">Loading goals...</p>
-        )}
+        {loading && <p className="text-muted text-sm text-center py-8">Loading goals...</p>}
         {!loading && plans.length === 0 && (
           <p className="text-muted text-sm text-center py-8">No goals yet. Tap + to create one!</p>
         )}
@@ -153,9 +151,7 @@ export default function Plans() {
         ))}
       </div>
 
-      {error && (
-        <p className="text-red-400 text-sm text-center px-6">{error}</p>
-      )}
+      {error && <p className="text-red-400 text-sm text-center px-6">{error}</p>}
 
       {selectedPlanId && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
