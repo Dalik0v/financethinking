@@ -1,0 +1,9 @@
+tunnel: ada04102-af20-4683-8376-acd8aaa776da
+credentials-file: /etc/cloudflared/ada04102-af20-4683-8376-acd8aaa776da.json
+
+ingress:
+  - hostname: danilanet.id.lv
+    service: http://frontend:3000
+  - hostname: api.danilanet.id.lv
+    service: http://backend:5193
+  - service: http_status:404

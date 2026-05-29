@@ -1,5 +1,5 @@
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "https://api.danilanet.id.lv";
+const API_BASE_URL = "https://api.danilanet.id.lv";
+
 function normalizePath(path: string) {
   if (!path) return path;
   // remove leading /api if present

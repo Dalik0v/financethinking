@@ -4,6 +4,9 @@
         <name>AIProject</name>
     </assembly>
     <members>
+        <member name="M:AIProject.Controllers.AppControllerBase.GetUserId">
+            <summary>Returns the userId from JWT, or null if unauthenticated.</summary>
+        </member>
         <member name="T:AIProject.Migrations.InitialCreate">
             <inheritdoc />
         </member>

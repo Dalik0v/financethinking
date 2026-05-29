@@ -37,7 +37,7 @@ services:
     depends_on:
       - backend
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:5193
+      NEXT_PUBLIC_API_URL: https://api.danilanet.id.lv
       CHOKIDAR_USEPOLLING: "true"
     ports:
       - "3000:3000"
@@ -52,6 +52,14 @@ services:
       - ./postcss.config.mjs:/app/postcss.config.mjs
       - frontend-node-modules:/app/node_modules
       - frontend-next:/app/.next
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: testq-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token eyJhIjoiZGFjMzMyY2IwMzExOWQyZmMxMDJjM2VlOGJhZTVhMGYiLCJ0IjoiYWRhMDQxMDItYWYyMC00NjgzLTgzNzYtYWNkOGFhYTc3NmRhIiwicyI6Ik5ETXdNV1JpTTJRdFpESXdaQzAwTmpNMUxUazNNR1V0TXpFek5UVmxNVFEwTm1RM1lqQTBOREk0T0RJdFpqRmpZaTAwT0dFekxXRXhZbU10WW1VeFpHRm1ZelppT1RWbSJ9
+    depends_on:
+      - frontend
 
 volumes:
   postgres-data: {}

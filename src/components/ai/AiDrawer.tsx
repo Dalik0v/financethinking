@@ -48,7 +48,7 @@ export default function AiDrawer({
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5193"}/ai`,
+        `https://api.danilanet.id.lv/ai`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -80,8 +80,6 @@ export default function AiDrawer({
       abortRef.current?.abort();
       abortRef.current = null;
       inFlightRef.current = false;
-      // Use a ref-based flag instead of calling setState directly
-      // to avoid the lint warning; loading resets naturally in finally block.
     }
   }, [open]);
 
