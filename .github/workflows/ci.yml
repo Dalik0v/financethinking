@@ -7,9 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  # ─────────────────────────────────────────
-  # 1. UNIT TESTS (no DB needed)
-  # ─────────────────────────────────────────
+  
   unit-tests:
     name: Unit Tests (.NET)
     runs-on: ubuntu-latest
@@ -42,9 +40,9 @@ jobs:
           name: unit-test-results
           path: ./test-results/*.trx
 
-  # ─────────────────────────────────────────
+ 
   # 2. BUILD BACKEND
-  # ─────────────────────────────────────────
+  
   build-backend:
     name: Build Backend (.NET)
     runs-on: ubuntu-latest
@@ -62,9 +60,9 @@ jobs:
       - name: Build (Release)
         run: dotnet build AIProject/AIProject.csproj --no-restore -c Release
 
-  # ─────────────────────────────────────────
-  # 3. BUILD FRONTEND + LINT
-  # ─────────────────────────────────────────
+ 
+  # 3. BUILD FRONTEND 
+ 
   build-frontend:
     name: Build Frontend (Next.js)
     runs-on: ubuntu-latest
@@ -88,9 +86,7 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: http://localhost:5193
 
-  # ─────────────────────────────────────────
-  # 4. SMOKE TESTS (real stack with Postgres)
-  # ─────────────────────────────────────────
+ 
   smoke-tests:
     name: API Smoke Tests
     runs-on: ubuntu-latest
@@ -148,9 +144,9 @@ jobs:
           name: smoke-test-results
           path: ./test-results/*.trx
 
-  # ─────────────────────────────────────────
-  # 5. DOCKER BUILD (final gate)
-  # ─────────────────────────────────────────
+  
+  # 5. DOCKER BUILD
+  
   docker:
     name: Docker Build
     runs-on: ubuntu-latest
