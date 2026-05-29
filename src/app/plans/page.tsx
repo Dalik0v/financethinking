@@ -86,9 +86,8 @@ export default function Plans() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     loadGoals();
-  }, []);
+  }, [loadGoals]);
 
   const handleAddSavings = async () => {
     const amount = parseFloat(savingsAmount);

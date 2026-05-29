@@ -60,7 +60,7 @@ export default function ThemeSelector() {
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useState<ThemeId>(() => {
+  const [theme] = useState<ThemeId>(() => {
     if (typeof document === "undefined") return "dark";
     return getCookieTheme() || (document.documentElement.getAttribute("data-theme") as ThemeId) || "dark";
   });
