@@ -9,7 +9,6 @@ import QuickActions from "@/components/layout/QuickActions";
 import { apiFetch } from "@/lib/api";
 import RecentActivity from "./RecentActivity";
 
-
 type TransactionsApiResponse = {
   currentBalance: number;
 };
@@ -23,7 +22,6 @@ export default function Dashboard() {
 
   const [card, setCard] = useState<CardResponse | null>(null);
   const [isHidden, setIsHidden] = useState(true);
-
   const [balance, setBalance] = useState<number | null>(null);
   const [balanceError, setBalanceError] = useState<string | null>(null);
 
@@ -36,23 +34,20 @@ export default function Dashboard() {
           "/transactions?take=1&page=1"
         );
         if (!cancelled) setBalance(res.currentBalance);
-      } catch (e: any) {
-        if (!cancelled) setBalanceError(e?.message ?? "Failed to load balance");
+      } catch (e: unknown) {
+        if (!cancelled) setBalanceError(e instanceof Error ? e.message : "Failed to load balance");
       }
 
       try {
         const cardData = await apiFetch<CardResponse>("/card");
         if (!cancelled) setCard(cardData);
       } catch {
-        // optional: ignore card load errors for the demo page
+        // ignore card load errors
       }
     }
 
     run();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   const formattedBalance = useMemo(() => {
@@ -67,7 +62,6 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col gap-8 pb-10">
-      {/* Header */}
       <header className="pt-16 px-6 flex justify-between items-start">
         <div>
           <p className="text-muted text-sm font-medium tracking-wide uppercase mb-1">
@@ -84,7 +78,6 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Bank Cards */}
       <section className="mb-10">
         <div className="flex justify-start gap-4 overflow-x-auto lg:overflow-visible no-scrollbar w-full px-6 py-2 items-start">
           <div className="shrink-0">
@@ -111,10 +104,8 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Quick Actions */}
       <QuickActions />
 
-      {/* Recent Transactions */}
       <section className="px-6 space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold tracking-tight">Recent Activity</h2>
@@ -124,13 +115,11 @@ export default function Dashboard() {
             </button>
           </Link>
         </div>
-
         <div>
           <RecentActivity />
         </div>
       </section>
 
-      {/* Add Bank Modal */}
       {isAddBankOpen && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
           <div
@@ -150,54 +139,12 @@ export default function Dashboard() {
             </p>
 
             <div className="grid grid-cols-2 gap-4 mb-8">
-              <BankOption
-                name="Revolut"
-                domain="revolut.com"
-                color="bg-[#191C1F]"
-                logo="R"
-                selected={selectedBank?.name === "Revolut"}
-                onSelect={() => setSelectedBank({ name: "Revolut", domain: "revolut.com" })}
-              />
-              <BankOption
-                name="Swedbank"
-                domain="swedbank.com"
-                color="bg-[#EE7023]"
-                logo="S"
-                selected={selectedBank?.name === "Swedbank"}
-                onSelect={() => setSelectedBank({ name: "Swedbank", domain: "swedbank.com" })}
-              />
-              <BankOption
-                name="SEB"
-                domain="seb.se"
-                color="bg-[#009241]"
-                logo="SEB"
-                selected={selectedBank?.name === "SEB"}
-                onSelect={() => setSelectedBank({ name: "SEB", domain: "seb.se" })}
-              />
-              <BankOption
-                name="HSBC"
-                domain="hsbc.com"
-                color="bg-[#DB0011]"
-                logo="H"
-                selected={selectedBank?.name === "HSBC"}
-                onSelect={() => setSelectedBank({ name: "HSBC", domain: "hsbc.com" })}
-              />
-              <BankOption
-                name="Barclays"
-                domain="barclays.co.uk"
-                color="bg-[#00AEEF]"
-                logo="B"
-                selected={selectedBank?.name === "Barclays"}
-                onSelect={() => setSelectedBank({ name: "Barclays", domain: "barclays.co.uk" })}
-              />
-              <BankOption
-                name="BNP Paribas"
-                domain="bnpparibas.com"
-                color="bg-[#009159]"
-                logo="BNP"
-                selected={selectedBank?.name === "BNP Paribas"}
-                onSelect={() => setSelectedBank({ name: "BNP Paribas", domain: "bnpparibas.com" })}
-              />
+              <BankOption name="Revolut" domain="revolut.com" color="bg-[#191C1F]" logo="R" selected={selectedBank?.name === "Revolut"} onSelect={() => setSelectedBank({ name: "Revolut", domain: "revolut.com" })} />
+              <BankOption name="Swedbank" domain="swedbank.com" color="bg-[#EE7023]" logo="S" selected={selectedBank?.name === "Swedbank"} onSelect={() => setSelectedBank({ name: "Swedbank", domain: "swedbank.com" })} />
+              <BankOption name="SEB" domain="seb.se" color="bg-[#009241]" logo="SEB" selected={selectedBank?.name === "SEB"} onSelect={() => setSelectedBank({ name: "SEB", domain: "seb.se" })} />
+              <BankOption name="HSBC" domain="hsbc.com" color="bg-[#DB0011]" logo="H" selected={selectedBank?.name === "HSBC"} onSelect={() => setSelectedBank({ name: "HSBC", domain: "hsbc.com" })} />
+              <BankOption name="Barclays" domain="barclays.co.uk" color="bg-[#00AEEF]" logo="B" selected={selectedBank?.name === "Barclays"} onSelect={() => setSelectedBank({ name: "Barclays", domain: "barclays.co.uk" })} />
+              <BankOption name="BNP Paribas" domain="bnpparibas.com" color="bg-[#009159]" logo="BNP" selected={selectedBank?.name === "BNP Paribas"} onSelect={() => setSelectedBank({ name: "BNP Paribas", domain: "bnpparibas.com" })} />
             </div>
 
             <button
@@ -238,10 +185,9 @@ function BankOption({
         selected ? "border-accent ring-1 ring-accent" : "border-border hover:border-muted"
       }`}
     >
-      <div
-        className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center text-white text-[10px] font-black group-hover:scale-110 transition-transform shadow-lg overflow-hidden shrink-0`}
-      >
+      <div className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center text-white text-[10px] font-black group-hover:scale-110 transition-transform shadow-lg overflow-hidden shrink-0`}>
         {!imgError ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={`https://logo.clearbit.com/${domain}`}
             alt={name}

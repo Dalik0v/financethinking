@@ -4,7 +4,14 @@ import React from "react";
 import Link from "next/link";
 import { Target, Lightbulb, ArrowRight } from "lucide-react";
 
-const ACTIONS = [
+type Action = {
+  href: string;
+  icon: React.ReactElement;
+  label: string;
+  sublabel: string;
+};
+
+const ACTIONS: Action[] = [
   {
     href: "/plans",
     icon: <Target size={16} />,
@@ -31,7 +38,7 @@ export default function QuickActions() {
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center text-white/60 group-hover:bg-white/10 group-hover:text-white transition-all">
-                {React.cloneElement(action.icon as React.ReactElement<any>, { size: 16 })}
+                {React.cloneElement(action.icon, { size: 16 })}
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-white/90 leading-none">

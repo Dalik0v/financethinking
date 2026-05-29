@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { TransactionItem } from "@/components/shared/TransactionItem";
 import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
@@ -17,10 +17,6 @@ type TransactionResponseDto = {
   date: string;
 };
 
-
-
-
-
 type TransactionsApiResponse = {
   currentBalance: number;
   monthlyIncome: number;
@@ -29,7 +25,6 @@ type TransactionsApiResponse = {
   recentTransactions: TransactionResponseDto[];
 };
 
-
 type Props = {
   apiFetch?: typeof apiFetchFn;
 };
@@ -37,22 +32,17 @@ type Props = {
 function formatAmount(amount: number, isIncome: boolean) {
   const abs = Math.abs(amount);
   const sign = isIncome ? "+" : "-";
-
   return `${sign}$${abs.toFixed(2)}`;
 }
 
-export default function RecentActivity({
-  apiFetch = apiFetchFn,
-}: Props) {
+export default function RecentActivity({ apiFetch = apiFetchFn }: Props) {
   const [items, setItems] = useState<TransactionResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const inFlightRef = useRef(false);
 
-  async function load(signal?: AbortSignal) {
+  const load = useCallback(async (signal?: AbortSignal) => {
     if (inFlightRef.current) return;
-
     inFlightRef.current = true;
 
     try {
@@ -60,12 +50,8 @@ export default function RecentActivity({
 
       const data = await apiFetch<TransactionsApiResponse>(
         "/transactions?take=4&page=1",
-        {
-          signal,
-        }
+        { signal }
       );
-
-      console.log("LIVE API RESPONSE", data);
 
       const recentTransactions = data?.recentTransactions;
       if (!Array.isArray(recentTransactions)) {
@@ -73,24 +59,14 @@ export default function RecentActivity({
       }
 
       setItems(recentTransactions);
-
-
-    } catch (e) {
+    } catch (e: unknown) {
       if (signal?.aborted) return;
-
-      const message =
-        e instanceof Error
-          ? e.message
-          : "Failed to load transactions";
-
-      console.error("RecentActivity error:", e);
-
-      setError(message);
+      setError(e instanceof Error ? e.message : "Failed to load transactions");
     } finally {
       inFlightRef.current = false;
       setLoading(false);
     }
-  }
+  }, [apiFetch]);
 
   useEffect(() => {
     let mounted = true;
@@ -110,61 +86,25 @@ export default function RecentActivity({
       controller.abort();
       window.removeEventListener("transaction:created", refresh);
     };
-  }, [apiFetch]);
+  }, [load]);
 
   const ui = useMemo(() => {
     return items.map((t) => {
       const isIncome = t.type === 0;
-
-      const title = t.description?.trim()
-
-        ? t.description.trim()
-        : t.category || "Transaction";
-
+      const title = t.description?.trim() ? t.description.trim() : t.category || "Transaction";
       const amountText = formatAmount(t.amount, isIncome);
-
-      return {
-        id: t.id,
-        title,
-        category: t.category,
-        amountText,
-        isIncome,
-      };
+      return { id: t.id, title, category: t.category, amountText, isIncome };
     });
   }, [items]);
 
-  if (loading) {
-    return (
-      <div className="text-sm text-zinc-400">
-        Loading transactions...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-sm text-red-400">
-        {error}
-      </div>
-    );
-  }
-
-  if (ui.length === 0) {
-    return (
-      <div className="text-sm text-zinc-400">
-        No transactions yet
-      </div>
-    );
-  }
+  if (loading) return <div className="text-sm text-zinc-400">Loading transactions...</div>;
+  if (error) return <div className="text-sm text-red-400">{error}</div>;
+  if (ui.length === 0) return <div className="text-sm text-zinc-400">No transactions yet</div>;
 
   return (
     <div className="space-y-3">
       {ui.map((tx) => (
-        <Link
-          key={tx.id}
-          href="/transactions"
-          className="block"
-        >
+        <Link key={tx.id} href="/transactions" className="block">
           <TransactionItem
             title={tx.title}
             category={tx.category}

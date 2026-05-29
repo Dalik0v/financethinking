@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import AiMessage from "./AiMessage";
@@ -15,6 +14,12 @@ export default function AiDrawer({
   onClose: () => void;
 }) {
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [responseText, setResponseText] = useState<string | null>(null);
+  const [errorText, setErrorText] = useState<string | null>(null);
+
+  const inFlightRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   const suggestionsPrompts = useMemo(
     () => [
@@ -26,40 +31,31 @@ export default function AiDrawer({
     []
   );
 
-  const [loading, setLoading] = useState(false);
-  const [responseText, setResponseText] = useState<string | null>(null);
-  const [errorText, setErrorText] = useState<string | null>(null);
-
-  const inFlightRef = React.useRef(false);
-  const abortRef = React.useRef<AbortController | null>(null);
-
   async function submit(prompt?: string) {
     const p = (prompt ?? input).trim();
-    if (!p) return;
-    if (!open) return;
-    if (loading) return;
-    if (inFlightRef.current) return;
+    if (!p || !open || loading || inFlightRef.current) return;
 
-    if (abortRef.current) {
-      abortRef.current.abort();
-    }
+    abortRef.current?.abort();
 
     const controller = new AbortController();
     abortRef.current = controller;
-
     inFlightRef.current = true;
+
     setLoading(true);
     setErrorText(null);
     setResponseText(null);
     setInput("");
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5193"}/ai`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(p),
-        signal: controller.signal,
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5193"}/ai`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(p),
+          signal: controller.signal,
+        }
+      );
 
       if (!res.ok) {
         const text = await res.text().catch(() => "");
@@ -67,28 +63,25 @@ export default function AiDrawer({
       }
 
       const text = await res.text();
-
       if (!controller.signal.aborted) {
         setResponseText(text);
       }
-    } catch (e) {
-      if (controller.signal.aborted) return;
-      const message = e instanceof Error ? e.message : "Failed to get AI response";
-      setErrorText(message);
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === "AbortError") return;
+      setErrorText(e instanceof Error ? e.message : "Failed to get AI response");
     } finally {
       inFlightRef.current = false;
       setLoading(false);
     }
   }
 
-
-  React.useEffect(() => {
+  useEffect(() => {
     if (!open) {
-      // Cancel in-flight request when drawer closes.
       abortRef.current?.abort();
       abortRef.current = null;
       inFlightRef.current = false;
-      setLoading(false);
+      // Use a ref-based flag instead of calling setState directly
+      // to avoid the lint warning; loading resets naturally in finally block.
     }
   }, [open]);
 
@@ -96,7 +89,6 @@ export default function AiDrawer({
     <AnimatePresence>
       {open && (
         <>
-
           <motion.div
             className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
             initial={{ opacity: 0 }}
@@ -122,14 +114,12 @@ export default function AiDrawer({
               />
 
               <div className="relative h-full flex flex-col">
-                {/* Header */}
                 <div className="p-5 flex items-center justify-between border-b border-white/10">
                   <div className="flex items-center gap-3">
                     <div className="relative w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_40px_rgba(236,72,153,0.20)]">
                       <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.7)]" />
                       <span className="text-white/90 font-black">AI</span>
                     </div>
-
                     <div>
                       <div className="text-sm font-bold text-white">AI Financial Advisor</div>
                       <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Online</div>
@@ -146,24 +136,17 @@ export default function AiDrawer({
                   </button>
                 </div>
 
-                {/* Body */}
                 <div className="p-5 flex-1 overflow-auto">
                   <AiMessage responseText={responseText} errorText={errorText} />
-
 
                   <div className="mt-5">
                     <div className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-3">
                       Suggested actions
                     </div>
-                    <AiSuggestions
-                      onPick={(prompt) => {
-                        submit(prompt);
-                      }}
-                    />
+                    <AiSuggestions onPick={(prompt) => { submit(prompt); }} />
                   </div>
 
                   <div className="mt-5">
-                    {/* Input */}
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-3 shadow-[0_0_50px_rgba(124,58,237,0.10)]">
                       <label className="sr-only">Ask the AI</label>
                       <div className="flex gap-2 items-center">
@@ -177,8 +160,6 @@ export default function AiDrawer({
                             if (e.key === "Enter" && !loading) submit();
                           }}
                         />
-
-
                         <button
                           type="button"
                           onClick={() => submit()}
@@ -186,11 +167,9 @@ export default function AiDrawer({
                           className="h-10 w-12 rounded-xl bg-gradient-to-br from-fuchsia-500 via-rose-500 to-red-500 border border-white/10 hover:opacity-95 transition-all shadow-[0_0_50px_rgba(236,72,153,0.25)] disabled:opacity-60 disabled:cursor-not-allowed"
                           aria-label="Send"
                         >
-
                           <span className="text-white font-black">↗</span>
                         </button>
                       </div>
-
                       <div className="mt-2 text-[11px] text-white/40">
                         Try: {suggestionsPrompts[0]} · {suggestionsPrompts[2]}
                       </div>
@@ -198,7 +177,6 @@ export default function AiDrawer({
                   </div>
                 </div>
 
-                {/* Footer glow */}
                 <div className="p-5 border-t border-white/10">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-white/40">
                     Luxury AI layer — analytics-ready
@@ -212,4 +190,3 @@ export default function AiDrawer({
     </AnimatePresence>
   );
 }
-

@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { Target, PiggyBank, Briefcase, Car, Home, Plane, GraduationCap, Heart, Laptop, Gift, TrendingUp } from "lucide-react";
+import React, { useState, useCallback } from "react";
+import { Target, Car, Home, Plane, GraduationCap, Heart, Laptop, Gift } from "lucide-react";
 import AiTipCard from "@/components/plans/AiTipCard";
 import PlanCard from "@/components/plans/PlanCard";
 import FloatingAddButton from "@/components/plans/FloatingAddButton";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import { useEffect } from "react";
 
 interface GoalDto {
   id: string;
@@ -78,8 +79,8 @@ export default function Plans() {
     try {
       const goals = await apiFetch<GoalDto[]>("/goals");
       setPlans(goals.map(goalToplan));
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to load goals");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to load goals");
     } finally {
       setLoading(false);
     }
@@ -102,8 +103,8 @@ export default function Plans() {
       setPlans(prev => prev.map(p => p.id === selectedPlanId ? goalToplan(updated) : p));
       setSelectedPlanId(null);
       setSavingsAmount("");
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to deposit");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to deposit");
     } finally {
       setIsDepositing(false);
     }
@@ -114,8 +115,8 @@ export default function Plans() {
       await apiFetch(`/goals/${id}`, { method: "DELETE" });
       setPlans(prev => prev.filter(p => p.id !== id));
       setSelectedPlanId(null);
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to delete goal");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to delete goal");
     }
   };
 
@@ -156,7 +157,6 @@ export default function Plans() {
         <p className="text-red-400 text-sm text-center px-6">{error}</p>
       )}
 
-      {/* Add Savings Modal */}
       {selectedPlanId && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedPlanId(null)} />

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import {
   ArrowLeft, PenLine, Calendar, Car, Home, Plane,
-  GraduationCap, Heart, Laptop, Gift, Plus, Utensils,
+  Heart, Laptop, Gift, Plus, Utensils,
   TrendingUp, TrendingDown,
 } from "lucide-react";
 import Link from "next/link";
@@ -52,8 +52,8 @@ export default function CreateTransaction() {
       });
       window.dispatchEvent(new CustomEvent("transaction:created"));
       router.push("/");
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to create transaction");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to create transaction");
       setIsSaving(false);
     }
   };

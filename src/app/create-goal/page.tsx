@@ -17,15 +17,6 @@ const CATEGORIES = [
   { id: "other", name: "Other", icon: <Plus size={20} />, color: "bg-accent" },
 ];
 
-interface Goal {
-  id: string;
-  name: string;
-  targetAmount: number;
-  deadline: string;
-  category: string;
-  saved: number;
-}
-
 export default function CreateGoal() {
   const router = useRouter();
   const [goalName, setGoalName] = useState("");
@@ -56,8 +47,8 @@ export default function CreateGoal() {
         }),
       });
       router.push("/plans");
-    } catch (e: any) {
-      alert(e?.message ?? "Failed to create goal");
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Failed to create goal");
       setIsCreating(false);
     }
   };
@@ -77,7 +68,6 @@ export default function CreateGoal() {
       </header>
 
       <main className="flex-1 overflow-y-auto px-6 pt-6 space-y-6 pb-32">
-        {/* Goal Name */}
         <div className="space-y-3">
           <label className="text-xs font-bold text-muted uppercase tracking-[2px]">Goal Name</label>
           <div className="relative">
@@ -92,7 +82,6 @@ export default function CreateGoal() {
           </div>
         </div>
 
-        {/* Target Amount */}
         <div className="space-y-3">
           <label className="text-xs font-bold text-muted uppercase tracking-[2px]">Target Amount</label>
           <div className="relative">
@@ -107,7 +96,6 @@ export default function CreateGoal() {
           </div>
         </div>
 
-        {/* Deadline */}
         <div className="space-y-3">
           <label className="text-xs font-bold text-muted uppercase tracking-[2px]">Deadline</label>
           <div className="relative">
@@ -122,7 +110,6 @@ export default function CreateGoal() {
           </div>
         </div>
 
-        {/* Category */}
         <div className="space-y-3">
           <label className="text-xs font-bold text-muted uppercase tracking-[2px]">Category</label>
           <div className="grid grid-cols-4 gap-3">
@@ -145,7 +132,6 @@ export default function CreateGoal() {
           </div>
         </div>
 
-        {/* Custom Category Input */}
         {selectedCategory === "other" && (
           <div className="space-y-3 animate-in slide-in-from-top-2 duration-200">
             <label className="text-xs font-bold text-muted uppercase tracking-[2px]">Custom Category Name</label>
@@ -162,7 +148,6 @@ export default function CreateGoal() {
         )}
       </main>
 
-      {/* Create Button */}
       <div className="p-6 pb-[calc(2rem+env(safe-area-inset-bottom))] absolute bottom-20 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border">
         <button
           onClick={handleCreateGoal}

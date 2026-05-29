@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, Zap, Scan as ScanIcon, Image as ImageIcon, X } from "lucide-react";
+import { ArrowLeft, Zap, Scan as ScanIcon, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function Scan() {
@@ -14,7 +14,7 @@ export default function Scan() {
 
   return (
     <div className="flex flex-col h-full bg-black text-white relative overflow-hidden">
-      {/* Camera View  */}
+      {/* Camera View */}
       <div className="absolute inset-0 bg-neutral-900 flex items-center justify-center">
         {!isScanning && (
           <div className="bg-card border border-border p-8 rounded-3xl flex flex-col items-center gap-4 animate-in zoom-in duration-300">
@@ -22,7 +22,7 @@ export default function Scan() {
               <Zap size={32} />
             </div>
             <h2 className="text-xl font-bold">QR Code Detected</h2>
-            <p className="text-sm text-muted mb-4 text-center">Pay $15.50 to "Starbucks Coffee"</p>
+            <p className="text-sm text-muted mb-4 text-center">Pay $15.50 to &quot;Starbucks Coffee&quot;</p>
             <Link href="/transfer">
               <button className="bg-accent text-white px-8 py-3 rounded-2xl font-bold shadow-accent-glow active:scale-95 transition-all">
                 Proceed to Pay

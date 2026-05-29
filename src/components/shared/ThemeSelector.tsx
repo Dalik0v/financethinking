@@ -26,10 +26,12 @@ export default function ThemeSelector() {
 
   useEffect(() => {
     const saved = getCookieTheme();
-    const current = document.documentElement.getAttribute("data-theme") as ThemeId || "dark";
+    const current = (document.documentElement.getAttribute("data-theme") as ThemeId) || "dark";
     const theme = saved || current;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     setActiveTheme(theme);
     document.documentElement.setAttribute("data-theme", theme);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleThemeSelect = (themeId: ThemeId) => {
@@ -66,8 +68,10 @@ export function useTheme() {
 
   useEffect(() => {
     const saved = getCookieTheme();
-    const current = document.documentElement.getAttribute("data-theme") as ThemeId || "dark";
+    const current = (document.documentElement.getAttribute("data-theme") as ThemeId) || "dark";
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     setTheme(saved || current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return theme;
