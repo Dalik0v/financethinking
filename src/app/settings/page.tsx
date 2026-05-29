@@ -13,7 +13,6 @@ import {
   EyeOff,
   X
 } from "lucide-react";
-import Link from "next/link";
 import ThemeSelector from "@/components/shared/ThemeSelector";
 import { apiFetch } from "@/lib/api";
 

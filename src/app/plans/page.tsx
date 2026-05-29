@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Target, Car, Home, Plane, GraduationCap, Heart, Laptop, Gift } from "lucide-react";
 import AiTipCard from "@/components/plans/AiTipCard";
 import PlanCard from "@/components/plans/PlanCard";
@@ -74,20 +74,23 @@ export default function Plans() {
   const [isDepositing, setIsDepositing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadGoals = useCallback(async () => {
-    try {
-      const goals = await apiFetch<GoalDto[]>("/goals");
-      setPlans(goals.map(goalToplan));
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to load goals");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    loadGoals();
-  }, [loadGoals]);
+    let mounted = true;
+
+    const load = async () => {
+      try {
+        const goals = await apiFetch<GoalDto[]>("/goals");
+        if (mounted) setPlans(goals.map(goalToplan));
+      } catch (e: unknown) {
+        if (mounted) setError(e instanceof Error ? e.message : "Failed to load goals");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    load();
+    return () => { mounted = false; };
+  }, []);
 
   const handleAddSavings = async () => {
     const amount = parseFloat(savingsAmount);
