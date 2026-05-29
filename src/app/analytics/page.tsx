@@ -32,6 +32,13 @@ type BalanceHistoryPoint = {
   balance: number;
 };
 
+type Transaction = {
+  id: number;
+  amount: number;
+  type: number; // 0 = Income, 1 = Expense
+  date: string;
+};
+
 type ChartPoint = {
   dateLabel: string;
   balance: number;
@@ -40,7 +47,7 @@ type ChartPoint = {
 
 function formatUsd(n: number) {
   const safe = Number.isFinite(n) ? n : 0;
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 2,
@@ -158,6 +165,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<BalanceHistoryPoint[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   const [open, setOpen] = useState(false);
 
@@ -168,8 +176,14 @@ export default function AnalyticsPage() {
       try {
         setLoading(true);
         setError(null);
-        const res = await apiFetch<BalanceHistoryPoint[]>("/analytics/balance-history");
-        if (!cancelled) setData(Array.isArray(res) ? res : []);
+        const [res, txRes] = await Promise.all([
+          apiFetch<BalanceHistoryPoint[]>("/analytics/balance-history"),
+          apiFetch<{ items: Transaction[] }>("/transactions?take=10000&page=1").catch(() => ({ items: [] })),
+        ]);
+        if (!cancelled) {
+          setData(Array.isArray(res) ? res : []);
+          setTransactions(Array.isArray(txRes) ? txRes : (txRes as { items: Transaction[] }).items ?? []);
+        }
       } catch (e) {
         const message = e instanceof Error ? e.message : "Failed to load analytics";
         if (!cancelled) setError(message);
@@ -217,6 +231,14 @@ export default function AnalyticsPage() {
     return { pct, dir };
   }, [chartPoints, timeframe]);
 
+  const { totalIncome, totalExpense } = useMemo(() => {
+    const start = timeframeStartTs(timeframe);
+    const filtered = transactions.filter((t) => new Date(t.date).getTime() >= start);
+    const totalIncome = filtered.filter((t) => t.type === 0).reduce((s, t) => s + t.amount, 0);
+    const totalExpense = filtered.filter((t) => t.type === 1).reduce((s, t) => s + t.amount, 0);
+    return { totalIncome, totalExpense };
+  }, [transactions, timeframe]);
+
   const insightsText = useMemo(() => {
     const pctAbs = Math.abs(balanceChange.pct);
     if (filtered.length < 2) return "Add transactions to see growth insights.";
@@ -238,7 +260,6 @@ export default function AnalyticsPage() {
             <span className="text-[10px] font-bold uppercase tracking-widest text-accent">Analytics</span>
           </div>
           <h1 className="mt-3 text-2xl font-black tracking-tight">Track your financial growth</h1>
-          <p className="text-sm text-muted font-semibold mt-2">Live-like balance curve powered by PostgreSQL.</p>
         </div>
 
         <div className="text-right">
@@ -290,7 +311,7 @@ export default function AnalyticsPage() {
               </div>
             ) : (
               <div className="h-[320px]">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="99%" height={320}>
                   <AreaChart data={filtered} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="balanceFill" x1="0" y1="0" x2="0" y2="1">
@@ -342,15 +363,15 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <PremiumStatCard
             title="Income"
-            value={formatUsd(currentBalance >= 0 ? currentBalance : 0)}
-            sub="Derived"
+            value={formatUsd(totalIncome)}
+            sub={timeframe === "ALL" ? "All time" : timeframe}
             icon={<Wallet className="text-success" size={20} />}
             trend={null}
           />
           <PremiumStatCard
             title="Expenses"
-            value={formatUsd(currentBalance < 0 ? Math.abs(currentBalance) : 0)}
-            sub="Derived"
+            value={formatUsd(totalExpense)}
+            sub={timeframe === "ALL" ? "All time" : timeframe}
             icon={<Wallet2 className="text-danger" size={20} />}
             trend={null}
           />

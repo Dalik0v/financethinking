@@ -38,6 +38,7 @@ public sealed class ApplicationDbContext : DbContext
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<PaymentCard> Cards => Set<PaymentCard>();
     public DbSet<Goal> Goals => Set<Goal>();
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -70,6 +71,18 @@ public sealed class ApplicationDbContext : DbContext
             entity.Property(e => e.IsPrimary).IsRequired();
             entity.Property(e => e.UserId).HasMaxLength(200);
             entity.HasIndex(e => e.IsPrimary);
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable("users");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Email).HasColumnName("email").HasMaxLength(256).IsRequired();
+            entity.Property(e => e.PasswordHash).HasColumnName("passwordhash").IsRequired();
+            entity.Property(e => e.FullName).HasColumnName("fullname").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.CreatedAt).HasColumnName("createdat").IsRequired();
+            entity.HasIndex(e => e.Email).IsUnique();
         });
 
         modelBuilder.Entity<Goal>(entity =>

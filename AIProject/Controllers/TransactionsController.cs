@@ -1,168 +1,113 @@
 using AIProject.Data;
 using AIProject.Domain;
 using AIProject.DTOs.Transactions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace AIProject.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("transactions")]
-public sealed class TransactionsController : ControllerBase
+public sealed class TransactionsController : AppControllerBase
 {
     private readonly ApplicationDbContext _db;
 
-    public TransactionsController(ApplicationDbContext db)
-    {
-        _db = db;
-    }
+    public TransactionsController(ApplicationDbContext db) => _db = db;
 
     [HttpGet]
-    public async Task<ActionResult<object>> GetAllAsync([FromQuery] int? take, [FromQuery] int? page, CancellationToken cancellationToken)
-
+    public async Task<ActionResult<object>> GetAllAsync([FromQuery] int? take, [FromQuery] int? page, CancellationToken ct)
     {
-        var takeValue = take.GetValueOrDefault(20);
-        if (takeValue <= 0 || takeValue > 200)
-            return BadRequest("Parameter 'take' must be between 1 and 200.");
+        var uid = GetUserId();
+        var takeValue = Math.Clamp(take.GetValueOrDefault(20), 1, 200);
+        var pageValue = Math.Max(page.GetValueOrDefault(1), 1);
 
-        var pageValue = page.GetValueOrDefault(1);
-        if (pageValue <= 0)
-            return BadRequest("Parameter 'page' must be >= 1.");
+        var query = _db.Transactions.AsNoTracking()
+            .Where(x => x.UserId == uid)
+            .OrderByDescending(x => x.Date);
 
-        var query = _db.Transactions.AsNoTracking().OrderByDescending(x => x.Date);
-
-        var balance = await CalculateCurrentBalanceAsync();
-        var monthlyIncome = await CalculateMonthlyIncomeAsync(DateTime.UtcNow);
-        var monthlyExpenses = await CalculateMonthlyExpensesAsync(DateTime.UtcNow);
-
-        var totalCount = await query.CountAsync();
-
+        var totalCount = await query.CountAsync(ct);
         var items = await query
             .Skip((pageValue - 1) * takeValue)
             .Take(takeValue)
             .Select(x => new TransactionResponseDto
             {
-                Id = x.Id,
-                Amount = x.Amount,
-                Type = x.Type,
-                Category = x.Category,
-                Description = x.Description,
-                Date = x.Date,
-                UserId = x.UserId
+                Id = x.Id, Amount = x.Amount, Type = x.Type,
+                Category = x.Category, Description = x.Description,
+                Date = x.Date, UserId = x.UserId
             })
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
+        var balance    = await CalcBalanceAsync(uid);
+        var monthInc   = await CalcMonthlyAsync(uid, TransactionType.Income, DateTime.UtcNow, ct);
+        var monthExp   = await CalcMonthlyAsync(uid, TransactionType.Expense, DateTime.UtcNow, ct);
 
-
-        return Ok(new
-        {
-            currentBalance = balance,
-            monthlyIncome,
-            monthlyExpenses,
-            totalCount,
-            recentTransactions = items
-        });
+        return Ok(new { currentBalance = balance, monthlyIncome = monthInc, monthlyExpenses = monthExp, totalCount, recentTransactions = items });
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<TransactionResponseDto>> GetByIdAsync(int id)
+    public async Task<ActionResult<TransactionResponseDto>> GetByIdAsync(int id, CancellationToken ct)
     {
+        var uid = GetUserId();
         var entity = await _db.Transactions.AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id);
-
-        if (entity is null)
-            return NotFound();
-
-        return Ok(ToResponseExpression(entity));
+            .FirstOrDefaultAsync(x => x.Id == id && x.UserId == uid, ct);
+        if (entity is null) return NotFound();
+        return Ok(Map(entity));
     }
 
     [HttpPost]
-    public async Task<ActionResult<TransactionResponseDto>> CreateAsync([FromBody] CreateTransactionDto dto, CancellationToken cancellationToken)
+    public async Task<ActionResult<TransactionResponseDto>> CreateAsync([FromBody] CreateTransactionDto dto, CancellationToken ct)
     {
-        if (dto is null)
-            return BadRequest("Body is required.");
+        if (dto is null) return BadRequest("Body is required.");
+        if (dto.Date == default) return BadRequest("Date must be provided.");
 
-        if (dto.Date == default)
-            return BadRequest("Date must be provided.");
-
+        var uid = GetUserId();
         var entity = new Transaction
         {
-            Amount = dto.Amount,
-            Type = dto.Type,
-            Category = dto.Category,
-            Description = dto.Description,
-            Date = dto.Date,
-            // Optional for future auth.
-            UserId = null
+            Amount = dto.Amount, Type = dto.Type, Category = dto.Category,
+            Description = dto.Description, Date = dto.Date, UserId = uid
         };
-
         _db.Transactions.Add(entity);
-        await _db.SaveChangesAsync(cancellationToken);
-
-        return Ok(ToResponseExpression(entity));
+        await _db.SaveChangesAsync(ct);
+        return Ok(Map(entity));
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeleteAsync(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> DeleteAsync(int id, CancellationToken ct)
     {
-        var entity = await _db.Transactions.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-        if (entity is null)
-            return NotFound();
-
+        var uid = GetUserId();
+        var entity = await _db.Transactions.FirstOrDefaultAsync(x => x.Id == id && x.UserId == uid, ct);
+        if (entity is null) return NotFound();
         _db.Transactions.Remove(entity);
-        await _db.SaveChangesAsync(cancellationToken);
-
+        await _db.SaveChangesAsync(ct);
         return NoContent();
     }
 
-    private static TransactionResponseDto ToResponseExpression(Transaction x) => new()
+    private static TransactionResponseDto Map(Transaction x) => new()
     {
-        Id = x.Id,
-        Amount = x.Amount,
-        Type = x.Type,
-        Category = x.Category,
-        Description = x.Description,
-        Date = x.Date,
-        UserId = x.UserId
+        Id = x.Id, Amount = x.Amount, Type = x.Type,
+        Category = x.Category, Description = x.Description,
+        Date = x.Date, UserId = x.UserId
     };
 
-    private async Task<decimal> CalculateCurrentBalanceAsync()
+    private async Task<decimal> CalcBalanceAsync(string? uid)
     {
-        // current balance = Income - Expenses
-        var income = await _db.Transactions.AsNoTracking()
-            .Where(x => x.Type == TransactionType.Income)
+        var inc = await _db.Transactions.AsNoTracking()
+            .Where(x => x.UserId == uid && x.Type == TransactionType.Income)
             .SumAsync(x => (decimal?)x.Amount) ?? 0m;
-
-
-        var expenses = await _db.Transactions.AsNoTracking()
-            .Where(x => x.Type == TransactionType.Expense)
+        var exp = await _db.Transactions.AsNoTracking()
+            .Where(x => x.UserId == uid && x.Type == TransactionType.Expense)
             .SumAsync(x => (decimal?)x.Amount) ?? 0m;
-
-        return income - expenses;
-
+        return inc - exp;
     }
 
-    private async Task<decimal> CalculateMonthlyIncomeAsync(DateTime dateUtc)
+    private async Task<decimal> CalcMonthlyAsync(string? uid, TransactionType type, DateTime now, CancellationToken ct)
     {
-        var monthStart = new DateTime(dateUtc.Year, dateUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-        var monthEnd = monthStart.AddMonths(1);
-
-        return (await _db.Transactions.AsNoTracking()
-            .Where(x => x.Type == TransactionType.Income)
-            .Where(x => x.Date >= monthStart && x.Date < monthEnd)
-            .SumAsync(x => (decimal?)x.Amount)) ?? 0m;
-
-    }
-
-    private async Task<decimal> CalculateMonthlyExpensesAsync(DateTime dateUtc)
-    {
-        var monthStart = new DateTime(dateUtc.Year, dateUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-        var monthEnd = monthStart.AddMonths(1);
-
-        return (await _db.Transactions.AsNoTracking()
-            .Where(x => x.Type == TransactionType.Expense)
-            .Where(x => x.Date >= monthStart && x.Date < monthEnd)
-            .SumAsync(x => (decimal?)x.Amount)) ?? 0m;
+        var start = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var end = start.AddMonths(1);
+        return await _db.Transactions.AsNoTracking()
+            .Where(x => x.UserId == uid && x.Type == type && x.Date >= start && x.Date < end)
+            .SumAsync(x => (decimal?)x.Amount, ct) ?? 0m;
     }
 }
-

@@ -36,7 +36,7 @@ export function PremiumCard({
   const mask = formatMaskedCardNumber(cardNumber);
   const display = isHidden ? mask : formatCardNumber(cardNumber);
 
-  const formattedBalance = new Intl.NumberFormat(undefined, {
+  const formattedBalance = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 2,

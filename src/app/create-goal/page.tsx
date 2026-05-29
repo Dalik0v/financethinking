@@ -114,6 +114,7 @@ export default function CreateGoal() {
             <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-muted w-5 h-5 z-10" />
             <input
               type="date"
+              lang="en"
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
               className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-accent transition-all font-medium [color-scheme:dark]"

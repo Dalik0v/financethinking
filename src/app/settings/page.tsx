@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import { 
-  User, 
-  LogOut, 
+import React, { useState, useEffect } from "react";
+import {
+  User,
+  LogOut,
   ChevronRight,
   ShieldCheck,
   Check,
@@ -14,15 +14,32 @@ import {
   X
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ThemeSelector from "@/components/shared/ThemeSelector";
+import { apiFetch } from "@/lib/api";
+
+function getInitials(name: string) {
+  const parts = name.trim().split(" ");
+  return parts.length >= 2
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : name.slice(0, 2).toUpperCase();
+}
 
 export default function Settings() {
+  const router = useRouter();
   const [showSavedToast, setShowSavedToast] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
-  const [displayName, setDisplayName] = useState("John Doe");
-  const [initials, setInitials] = useState("JD");
+  const cachedName = typeof document !== "undefined"
+    ? document.cookie.match(/(?:^|;\s*)username=([^;]+)/)?.[1] ?? ""
+    : "";
+  const [displayName, setDisplayName] = useState(cachedName || "...");
+  const [initials, setInitials] = useState(cachedName ? getInitials(cachedName) : "..");
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Name comes from the username cookie set during login/register (per-user)
+  // We no longer overwrite it from /card which is shared across accounts
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -31,7 +48,7 @@ export default function Settings() {
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [profileError, setProfileError] = useState("");
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     setProfileError("");
 
     if (!displayName.trim()) {
@@ -39,34 +56,36 @@ export default function Settings() {
       return;
     }
 
-    if (newPassword || confirmPassword) {
-      if (!currentPassword) {
-        setProfileError("Enter your current password to set a new one.");
-        return;
-      }
-      if (newPassword.length < 6) {
-        setProfileError("New password must be at least 6 characters.");
-        return;
-      }
-      if (newPassword !== confirmPassword) {
-        setProfileError("Passwords do not match.");
-        return;
-      }
+    // Validate password fields if filled
+    if (currentPassword || newPassword || confirmPassword) {
+      if (!currentPassword) { setProfileError("Enter your current password."); return; }
+      if (newPassword.length < 6) { setProfileError("New password must be at least 6 characters."); return; }
+      if (newPassword !== confirmPassword) { setProfileError("Passwords do not match."); return; }
     }
 
-    const parts = displayName.trim().split(" ");
-    const derived = parts.length >= 2
-      ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-      : displayName.slice(0, 2).toUpperCase();
-    setInitials(derived);
+    setIsSaving(true);
+    try {
+      // Change password if provided
+      if (currentPassword && newPassword) {
+        await apiFetch("/auth/password", {
+          method: "PATCH",
+          body: JSON.stringify({ currentPassword, newPassword }),
+        });
+      }
 
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-
-    setIsEditingProfile(false);
-    setShowSavedToast(true);
-    setTimeout(() => setShowSavedToast(false), 2000);
+      setInitials(getInitials(displayName));
+      document.cookie = `username=${encodeURIComponent(displayName.trim())}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+      setIsEditingProfile(false);
+      setShowSavedToast(true);
+      setTimeout(() => setShowSavedToast(false), 2000);
+    } catch (e: any) {
+      setProfileError(e?.message ?? "Failed to save");
+    } finally {
+      setIsSaving(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    }
   };
 
   return (
@@ -80,13 +99,13 @@ export default function Settings() {
         <div className="bg-card border border-border p-6 rounded-[32px] flex items-center justify-between shadow-premium group">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="w-16 h-16 bg-gradient-to-tr from-accent to-accent-orange rounded-2xl flex items-center justify-center text-white text-xl font-bold shadow-accent-glow group-hover:rotate-6 transition-transform">
+              <div suppressHydrationWarning className="w-16 h-16 bg-gradient-to-tr from-accent to-accent-orange rounded-2xl flex items-center justify-center text-white text-xl font-bold shadow-accent-glow group-hover:rotate-6 transition-transform">
                 {initials}
               </div>
               <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-success border-4 border-card rounded-full" />
             </div>
             <div>
-              <h2 className="font-bold text-lg">{displayName}</h2>
+              <h2 suppressHydrationWarning className="font-bold text-lg">{displayName}</h2>
               <div className="flex items-center gap-1.5">
                 <ShieldCheck size={14} className="text-accent" />
                 <span className="text-[10px] text-accent font-black uppercase tracking-widest">Premium Member</span>
@@ -149,7 +168,7 @@ export default function Settings() {
 
             <div className="flex justify-center mb-8">
               <div className="relative">
-                <div className="w-20 h-20 bg-gradient-to-tr from-accent to-accent-orange rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-accent-glow">
+                <div suppressHydrationWarning className="w-20 h-20 bg-gradient-to-tr from-accent to-accent-orange rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-accent-glow">
                   {initials}
                 </div>
                 <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-accent rounded-xl flex items-center justify-center shadow-accent-glow">
@@ -234,9 +253,10 @@ export default function Settings() {
 
               <button
                 onClick={handleSaveProfile}
-                className="w-full py-4 bg-accent text-white rounded-2xl font-bold shadow-accent-glow hover:opacity-90 transition-all active:scale-95 mt-2"
+                className="w-full py-4 bg-accent text-white rounded-2xl font-bold shadow-accent-glow hover:opacity-90 transition-all active:scale-95 mt-2 disabled:opacity-50"
+              disabled={isSaving}
               >
-                Save Changes
+                {isSaving ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
@@ -268,11 +288,17 @@ export default function Settings() {
               >
                 Cancel
               </button>
-              <Link href="/" className="flex-1">
-                <button className="w-full py-4 bg-accent text-white rounded-2xl font-bold shadow-accent-glow">
-                  Log Out
-                </button>
-              </Link>
+              <button
+                onClick={() => {
+                  document.cookie = "token=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                  document.cookie = "username=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                  window.localStorage.removeItem("auth_token");
+                  window.location.href = "/login";
+                }}
+                className="flex-1 py-4 bg-accent text-white rounded-2xl font-bold shadow-accent-glow"
+              >
+                Log Out
+              </button>
             </div>
           </div>
         </div>

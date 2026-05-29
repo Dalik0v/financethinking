@@ -1,14 +1,16 @@
 using AIProject.Data;
 using AIProject.Domain;
 using AIProject.DTOs.Goals;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace AIProject.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("goals")]
-public sealed class GoalsController : ControllerBase
+public sealed class GoalsController : AppControllerBase
 {
     private readonly ApplicationDbContext _db;
 
@@ -17,21 +19,17 @@ public sealed class GoalsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<GoalResponseDto>>> GetAllAsync(CancellationToken ct)
     {
-        var goals = await _db.Goals
-            .AsNoTracking()
+        var uid = GetUserId();
+        var goals = await _db.Goals.AsNoTracking()
+            .Where(g => g.UserId == uid)
             .OrderByDescending(g => g.CreatedAt)
             .Select(g => new GoalResponseDto
             {
-                Id = g.Id,
-                Name = g.Name,
-                TargetAmount = g.TargetAmount,
-                SavedAmount = g.SavedAmount,
-                Category = g.Category,
-                Deadline = g.Deadline,
-                CreatedAt = g.CreatedAt,
+                Id = g.Id, Name = g.Name, TargetAmount = g.TargetAmount,
+                SavedAmount = g.SavedAmount, Category = g.Category,
+                Deadline = g.Deadline, CreatedAt = g.CreatedAt,
             })
             .ToListAsync(ct);
-
         return Ok(goals);
     }
 
@@ -42,61 +40,59 @@ public sealed class GoalsController : ControllerBase
         if (string.IsNullOrWhiteSpace(dto.Name)) return BadRequest("Name required.");
         if (dto.TargetAmount <= 0) return BadRequest("TargetAmount must be > 0.");
 
+        var uid = GetUserId();
         var goal = new Goal
         {
-            Name = dto.Name.Trim(),
-            TargetAmount = dto.TargetAmount,
-            Category = dto.Category.Trim(),
-            Deadline = dto.Deadline,
-            CreatedAt = DateTime.UtcNow,
+            Name = dto.Name.Trim(), TargetAmount = dto.TargetAmount,
+            Category = dto.Category.Trim(), Deadline = dto.Deadline,
+            CreatedAt = DateTime.UtcNow, UserId = uid,
         };
-
         _db.Goals.Add(goal);
         await _db.SaveChangesAsync(ct);
-
-        return Ok(new GoalResponseDto
-        {
-            Id = goal.Id,
-            Name = goal.Name,
-            TargetAmount = goal.TargetAmount,
-            SavedAmount = goal.SavedAmount,
-            Category = goal.Category,
-            Deadline = goal.Deadline,
-            CreatedAt = goal.CreatedAt,
-        });
+        return Ok(ToDto(goal));
     }
 
     [HttpPatch("{id:guid}/deposit")]
     public async Task<ActionResult<GoalResponseDto>> DepositAsync(Guid id, [FromBody] DepositGoalDto dto, CancellationToken ct)
     {
         if (dto.Amount <= 0) return BadRequest("Amount must be > 0.");
+        var uid = GetUserId();
 
-        var goal = await _db.Goals.FirstOrDefaultAsync(g => g.Id == id, ct);
+        var goal = await _db.Goals.FirstOrDefaultAsync(g => g.Id == id && g.UserId == uid, ct);
         if (goal is null) return NotFound();
 
-        goal.SavedAmount = Math.Min(goal.TargetAmount, goal.SavedAmount + dto.Amount);
-        await _db.SaveChangesAsync(ct);
+        var actualDeposit = Math.Min(dto.Amount, goal.TargetAmount - goal.SavedAmount);
+        goal.SavedAmount += actualDeposit;
 
-        return Ok(new GoalResponseDto
+        var card = await _db.Cards.Where(c => c.IsPrimary && c.UserId == uid).FirstOrDefaultAsync(ct);
+        if (card is not null) card.Balance -= actualDeposit;
+
+        _db.Transactions.Add(new Transaction
         {
-            Id = goal.Id,
-            Name = goal.Name,
-            TargetAmount = goal.TargetAmount,
-            SavedAmount = goal.SavedAmount,
-            Category = goal.Category,
-            Deadline = goal.Deadline,
-            CreatedAt = goal.CreatedAt,
+            Amount = actualDeposit, Type = TransactionType.Expense,
+            Category = "Goals", Description = $"Deposit to: {goal.Name}",
+            Date = DateTime.UtcNow, UserId = uid,
         });
+
+        await _db.SaveChangesAsync(ct);
+        return Ok(ToDto(goal));
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteAsync(Guid id, CancellationToken ct)
     {
-        var goal = await _db.Goals.FirstOrDefaultAsync(g => g.Id == id, ct);
+        var uid = GetUserId();
+        var goal = await _db.Goals.FirstOrDefaultAsync(g => g.Id == id && g.UserId == uid, ct);
         if (goal is null) return NotFound();
-
         _db.Goals.Remove(goal);
         await _db.SaveChangesAsync(ct);
         return NoContent();
     }
+
+    private static GoalResponseDto ToDto(Goal g) => new()
+    {
+        Id = g.Id, Name = g.Name, TargetAmount = g.TargetAmount,
+        SavedAmount = g.SavedAmount, Category = g.Category,
+        Deadline = g.Deadline, CreatedAt = g.CreatedAt,
+    };
 }

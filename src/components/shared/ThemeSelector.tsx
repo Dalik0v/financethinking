@@ -11,23 +11,31 @@ const THEMES = [
 
 type ThemeId = typeof THEMES[number]["id"];
 
+function getCookieTheme(): ThemeId | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|;\s*)theme=([^;]+)/);
+  return (match?.[1] as ThemeId) ?? null;
+}
+
+function setCookieTheme(theme: ThemeId) {
+  document.cookie = `theme=${theme}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+}
+
 export default function ThemeSelector() {
   const [activeTheme, setActiveTheme] = useState<ThemeId>("dark");
 
   useEffect(() => {
-    // Get saved theme or use data-theme default from layout
-    const saved = localStorage.getItem("theme") as ThemeId | null;
-    const current = document.documentElement.getAttribute("data-theme") || "dark";
+    const saved = getCookieTheme();
+    const current = document.documentElement.getAttribute("data-theme") as ThemeId || "dark";
     const theme = saved || current;
-    setActiveTheme(theme as ThemeId);
+    setActiveTheme(theme);
     document.documentElement.setAttribute("data-theme", theme);
   }, []);
-
 
   const handleThemeSelect = (themeId: ThemeId) => {
     setActiveTheme(themeId);
     document.documentElement.setAttribute("data-theme", themeId);
-    localStorage.setItem("theme", themeId);
+    setCookieTheme(themeId);
   };
 
   return (
@@ -39,8 +47,8 @@ export default function ThemeSelector() {
           className={`
             relative w-9 h-9 rounded-full transition-all duration-300
             hover:scale-110 cursor-pointer
-            ${activeTheme === theme.id 
-              ? "scale-110 ring-2 ring-white ring-offset-2 ring-offset-card" 
+            ${activeTheme === theme.id
+              ? "scale-110 ring-2 ring-white ring-offset-2 ring-offset-card"
               : "opacity-70 hover:opacity-100"
             }
           `}
@@ -53,16 +61,14 @@ export default function ThemeSelector() {
   );
 }
 
-// Hook for accessing current theme
 export function useTheme() {
   const [theme, setTheme] = useState<ThemeId>("dark");
 
   useEffect(() => {
-    const saved = localStorage.getItem("theme") as ThemeId | null;
-    const current = document.documentElement.getAttribute("data-theme") || "dark";
-    setTheme((saved || current) as ThemeId);
+    const saved = getCookieTheme();
+    const current = document.documentElement.getAttribute("data-theme") as ThemeId || "dark";
+    setTheme(saved || current);
   }, []);
 
   return theme;
 }
-

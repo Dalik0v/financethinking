@@ -6,15 +6,22 @@ function normalizePath(path: string) {
   return path.replace(/^\/api\b/, "");
 }
 
+function getToken(): string {
+  if (typeof window === "undefined") return "";
+  // localStorage is more reliable than cookie parsing for client-side API calls
+  return window.localStorage.getItem("auth_token") ?? "";
+}
+
 export async function apiFetch<T>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
+  const token = getToken();
   const response = await fetch(`${API_BASE_URL}${normalizePath(path)}`, {
-
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(init?.headers ?? {}),
     },
     cache: "no-store",

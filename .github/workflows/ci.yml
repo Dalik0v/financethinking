@@ -7,48 +7,156 @@ on:
     branches: [ main ]
 
 jobs:
+  # ─────────────────────────────────────────
+  # 1. UNIT TESTS (no DB needed)
+  # ─────────────────────────────────────────
+  unit-tests:
+    name: Unit Tests (.NET)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore AIProject.Tests/AIProject.Tests.csproj
+
+      - name: Build
+        run: dotnet build AIProject.Tests/AIProject.Tests.csproj --no-restore -c Release
+
+      - name: Run Unit Tests
+        run: >
+          dotnet test AIProject.Tests/AIProject.Tests.csproj
+          --no-build -c Release
+          --filter "Category!=Smoke"
+          --logger "trx;LogFileName=unit-results.trx"
+          --results-directory ./test-results
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: ./test-results/*.trx
+
+  # ─────────────────────────────────────────
+  # 2. BUILD BACKEND
+  # ─────────────────────────────────────────
   build-backend:
     name: Build Backend (.NET)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore ./AIProject
+      - name: Restore
+        run: dotnet restore AIProject/AIProject.csproj
 
-      - name: Build
-        run: dotnet build ./AIProject --no-restore --configuration Release
+      - name: Build (Release)
+        run: dotnet build AIProject/AIProject.csproj --no-restore -c Release
 
+  # ─────────────────────────────────────────
+  # 3. BUILD FRONTEND + LINT
+  # ─────────────────────────────────────────
   build-frontend:
-    name: Build Frontend (React)
+    name: Build Frontend (Next.js)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm install
-        working-directory: ./src
+      - name: Install deps
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
 
       - name: Build
         run: npm run build
-        working-directory: ./src
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:5193
 
-  docker:
-    name: Build Docker Images
+  # ─────────────────────────────────────────
+  # 4. SMOKE TESTS (real stack with Postgres)
+  # ─────────────────────────────────────────
+  smoke-tests:
+    name: API Smoke Tests
     runs-on: ubuntu-latest
-    needs: [build-backend, build-frontend]
+    needs: [build-backend, unit-tests]
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: ai_project_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Docker Compose
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Start backend
+        env:
+          ASPNETCORE_URLS: http://0.0.0.0:5193
+          ConnectionStrings__Postgres: Host=localhost;Port=5432;Database=ai_project_test;Username=postgres;Password=testpassword
+          ASPNETCORE_ENVIRONMENT: Development
+        run: |
+          dotnet run --project AIProject/AIProject.csproj &
+          echo "Waiting for backend to start..."
+          for i in $(seq 1 30); do
+            curl -sf "http://localhost:5193/transactions?take=1&page=1" && break || true
+            sleep 2
+          done
+
+      - name: Run Smoke Tests
+        env:
+          TESTQ_API_URL: http://localhost:5193
+        run: >
+          dotnet test AIProject.Tests/AIProject.Tests.csproj
+          --filter "Category=Smoke"
+          --logger "trx;LogFileName=smoke-results.trx"
+          --results-directory ./test-results
+
+      - name: Upload smoke test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-results
+          path: ./test-results/*.trx
+
+  # ─────────────────────────────────────────
+  # 5. DOCKER BUILD (final gate)
+  # ─────────────────────────────────────────
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend, unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker images
         run: docker compose build

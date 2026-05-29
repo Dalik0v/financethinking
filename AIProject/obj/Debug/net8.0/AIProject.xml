@@ -40,5 +40,17 @@
         <member name="M:AIProject.Migrations.AddTransactionsTable.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
+        <member name="T:AIProject.Migrations.AddGoalsTable">
+            <inheritdoc />
+        </member>
+        <member name="M:AIProject.Migrations.AddGoalsTable.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:AIProject.Migrations.AddGoalsTable.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:AIProject.Migrations.AddGoalsTable.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
     </members>
 </doc>

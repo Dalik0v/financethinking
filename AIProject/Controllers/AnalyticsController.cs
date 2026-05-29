@@ -1,14 +1,16 @@
 using AIProject.Data;
 using AIProject.Domain;
 using AIProject.DTOs.Analytics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace AIProject.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("analytics")]
-public sealed class AnalyticsController : ControllerBase
+public sealed class AnalyticsController : AppControllerBase
 {
     private readonly ApplicationDbContext _db;
 
@@ -22,8 +24,10 @@ public sealed class AnalyticsController : ControllerBase
     public async Task<ActionResult<List<AnalyticsPointDto>>> GetBalanceHistoryAsync(CancellationToken cancellationToken)
     {
         // sort by createdAt ASC -> in current domain it's Transaction.Date
+        var uid = GetUserId();
         var ordered = await _db.Transactions
             .AsNoTracking()
+            .Where(x => x.UserId == uid)
             .OrderBy(x => x.Date)
             .Select(x => new { x.Date, x.Amount, x.Type })
             .ToListAsync(cancellationToken);

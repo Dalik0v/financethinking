@@ -110,7 +110,7 @@ export default function CreateTransaction() {
           <label className="text-xs font-bold text-muted uppercase tracking-[2px]">Date</label>
           <div className="relative">
             <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-muted w-5 h-5 z-10" />
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} lang="en"
               className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-accent transition-all font-medium [color-scheme:dark]" />
           </div>
         </div>
