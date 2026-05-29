@@ -5,10 +5,7 @@ import { ArrowLeft, Search, Filter, Download, ArrowUpRight, ArrowDownRight, Coff
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 
-type TransactionType = 0 | 1 | 2; // matches backend enum values
-
-
-
+type TransactionType = 0 | 1 | 2;
 
 type TransactionResponseDto = {
   id: number;
@@ -77,11 +74,10 @@ export default function Transactions() {
         setLoading(true);
         setError(null);
 
-        // take/page are supported by backend
-const res = await apiFetch<TransactionsApiResponse>(`/transactions?take=200&page=1`);
+        const res = await apiFetch<TransactionsApiResponse>(`/transactions?take=200&page=1`);
         if (!cancelled) setApiData(res);
-      } catch (e: any) {
-        if (!cancelled) setError(e?.message ?? "Failed to load transactions");
+      } catch (e: unknown) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load transactions");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -97,16 +93,12 @@ const res = await apiFetch<TransactionsApiResponse>(`/transactions?take=200&page
     const items = apiData?.recentTransactions ?? [];
 
     return items.map((t) => {
-      // backend: Income=0, Expense=1, Transfer=2
-const isIncome = t.type === 0;
-      // Amount from backend is always stored as absolute value; we apply sign only for UI.
+      const isIncome = t.type === 0;
       return {
         id: t.id,
-        title: t.description?.trim() ? t.description!.trim() : (t.category || "Transaction"),
+        title: t.description?.trim() ? t.description.trim() : (t.category || "Transaction"),
         category: t.category,
-        // Use sign purely for UI; backend stores positive Amount.
         amount: isIncome ? Math.abs(t.amount) : -Math.abs(t.amount),
-
         dateLabel: formatDateLabel(t.date),
         isIncome,
         icon: pickIcon(t.category, isIncome),
@@ -140,7 +132,6 @@ const isIncome = t.type === 0;
       </header>
 
       <div className="px-6 space-y-6">
-        {/* Search & Filter */}
         <div className="flex gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted w-4 h-4" />
@@ -157,12 +148,11 @@ const isIncome = t.type === 0;
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 p-1 bg-card border border-border rounded-2xl shadow-premium">
-          {["All", "Income", "Outcome"].map((tab) => (
+          {(["All", "Income", "Outcome"] as const).map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab as any)}
+              onClick={() => setActiveTab(tab)}
               className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
                 activeTab === tab ? "bg-foreground text-background" : "text-muted hover:text-foreground"
               }`}
@@ -172,7 +162,6 @@ const isIncome = t.type === 0;
           ))}
         </div>
 
-        {/* Content */}
         {loading ? (
           <div className="text-muted text-sm font-semibold">Loading...</div>
         ) : error ? (
@@ -215,4 +204,3 @@ const isIncome = t.type === 0;
     </div>
   );
 }
-

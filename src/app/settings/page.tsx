@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   User,
   LogOut,
@@ -14,7 +14,6 @@ import {
   X
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import ThemeSelector from "@/components/shared/ThemeSelector";
 import { apiFetch } from "@/lib/api";
 
@@ -26,7 +25,6 @@ function getInitials(name: string) {
 }
 
 export default function Settings() {
-  const router = useRouter();
   const [showSavedToast, setShowSavedToast] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -38,8 +36,6 @@ export default function Settings() {
   const [initials, setInitials] = useState(cachedName ? getInitials(cachedName) : "..");
   const [isSaving, setIsSaving] = useState(false);
 
-  // Name comes from the username cookie set during login/register (per-user)
-  // We no longer overwrite it from /card which is shared across accounts
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -56,7 +52,6 @@ export default function Settings() {
       return;
     }
 
-    // Validate password fields if filled
     if (currentPassword || newPassword || confirmPassword) {
       if (!currentPassword) { setProfileError("Enter your current password."); return; }
       if (newPassword.length < 6) { setProfileError("New password must be at least 6 characters."); return; }
@@ -65,7 +60,6 @@ export default function Settings() {
 
     setIsSaving(true);
     try {
-      // Change password if provided
       if (currentPassword && newPassword) {
         await apiFetch("/auth/password", {
           method: "PATCH",
@@ -78,8 +72,8 @@ export default function Settings() {
       setIsEditingProfile(false);
       setShowSavedToast(true);
       setTimeout(() => setShowSavedToast(false), 2000);
-    } catch (e: any) {
-      setProfileError(e?.message ?? "Failed to save");
+    } catch (e: unknown) {
+      setProfileError(e instanceof Error ? e.message : "Failed to save");
     } finally {
       setIsSaving(false);
       setCurrentPassword("");
@@ -126,7 +120,6 @@ export default function Settings() {
           <div onClick={() => setIsEditingProfile(true)}>
             <SettingsItem icon={<User size={20} />} label="Personal Information" />
           </div>
-
         </SettingsGroup>
 
         <SettingsGroup title="Preferences">
@@ -253,8 +246,8 @@ export default function Settings() {
 
               <button
                 onClick={handleSaveProfile}
+                disabled={isSaving}
                 className="w-full py-4 bg-accent text-white rounded-2xl font-bold shadow-accent-glow hover:opacity-90 transition-all active:scale-95 mt-2 disabled:opacity-50"
-              disabled={isSaving}
               >
                 {isSaving ? "Saving..." : "Save Changes"}
               </button>
