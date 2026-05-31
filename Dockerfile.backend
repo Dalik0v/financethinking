@@ -3,8 +3,8 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0
 WORKDIR /src
 
 # Copy only csproj first for restore
-COPY AIProject/*.csproj ./AIProject/
-RUN dotnet restore "AIProject/AIProject.csproj"
+COPY FinanceThink/*.csproj ./FinanceThink/
+RUN dotnet restore "FinanceThink/FinanceThink.csproj"
 
 # Copy everything else
 COPY . .
@@ -13,5 +13,5 @@ COPY . .
 EXPOSE 5193
 
 # ASP.NET Core dev server, bind to 0.0.0.0
-CMD ["dotnet", "run", "--project", "AIProject/AIProject.csproj", "--urls", "http://0.0.0.0:5193"]
+CMD ["dotnet", "run", "--project", "FinanceThink/FinanceThink.csproj", "--urls", "http://0.0.0.0:5193"]
 

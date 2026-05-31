@@ -28,6 +28,7 @@ interface Plan {
   color: string;
   category?: string;
   deadline?: string;
+  deleting?: boolean;
 }
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
@@ -113,12 +114,19 @@ export default function Plans() {
   };
 
   const handleDeleteGoal = async (id: string) => {
-    try {
-      await apiFetch(`/goals/${id}`, { method: "DELETE" });
-      setPlans(prev => prev.filter(p => p.id !== id));
-      setSelectedPlanId(null);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to delete goal");
+    setPlans(prev => prev.map(p => p.id === id ? { ...p, deleting: true } : p));
+    setError(null);
+    const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") ?? "" : "";
+    const res = await fetch(`https://api.danilanet.id.lv/goals/${id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (res.ok || res.status === 204 || res.status === 404) {
+      window.location.reload();
+    } else {
+      setPlans(prev => prev.map(p => p.id === id ? { ...p, deleting: false } : p));
+      setError("Failed to delete goal");
     }
   };
 
@@ -131,12 +139,6 @@ export default function Plans() {
         </div>
         <FloatingAddButton onClick={() => router.push("/create-goal")} />
       </header>
-
-      <AiTipCard
-        tip="You can reach your Emergency Fund goal 2 months faster if you save $50 more weekly."
-        highlight="Emergency Fund"
-        onAction={() => {}}
-      />
 
       <div className="px-6 grid gap-4">
         {loading && <p className="text-muted text-sm text-center py-8">Loading goals...</p>}

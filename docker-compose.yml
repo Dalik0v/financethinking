@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 130906
-      POSTGRES_DB: ai_project
+      POSTGRES_DB: Finance_Think
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
@@ -20,13 +20,13 @@ services:
       - postgres
     environment:
       ASPNETCORE_URLS: http://0.0.0.0:5193
-      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=ai_project;Username=postgres;Password=130906
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=Finance_Think;Username=postgres;Password=130906
       ASPNETCORE_ENVIRONMENT: Development
     ports:
       - "5193:5193"
     volumes:
-      - ./AIProject/Migrations:/src/AIProject/Migrations
-      - ./AIProject/appsettings.json:/src/AIProject/appsettings.json
+      - ./FinanceThink/Migrations:/src/FinanceThink/Migrations
+      - ./FinanceThink/appsettings.json:/src/FinanceThink/appsettings.json
 
   frontend:
     build:

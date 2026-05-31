@@ -48,6 +48,10 @@ next-env.d.ts
 *.lsache
 AIProject.http
 
+# Секретные файлы
+appsettings.json
+AIProject/appsettings.json
+
 # Не нужные файлы
 cd
 CREATE

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Trash2 } from "lucide-react";
 
 interface Plan {
@@ -11,6 +12,7 @@ interface Plan {
   color: string;
   category?: string;
   deadline?: string;
+  deleting?: boolean;
 }
 
 interface PlanCardProps {
@@ -21,6 +23,23 @@ interface PlanCardProps {
 
 export default function PlanCard({ plan, onClick, onDelete }: PlanCardProps) {
   const progress = Math.min((plan.saved / plan.goal) * 100, 100);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const deleting = isDeleting || plan.deleting;
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (deleting) return;
+    setIsDeleting(true);
+    await onDelete(plan.id);
+  };
+
+  if (deleting) {
+    return (
+      <div className="bg-card border border-border rounded-3xl p-5 opacity-50 flex items-center justify-center h-24">
+        <p className="text-sm text-muted">Deleting... Refresh the page</p>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -40,8 +59,9 @@ export default function PlanCard({ plan, onClick, onDelete }: PlanCardProps) {
           </div>
         </div>
         <button
-          onClick={(e) => { e.stopPropagation(); onDelete(plan.id); }}
-          className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center hover:bg-red-500/20 transition-colors"
+          onClick={handleDelete}
+          disabled={!!deleting}
+          className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center hover:bg-red-500/20 transition-colors disabled:opacity-50"
         >
           <Trash2 size={14} className="text-red-400" />
         </button>

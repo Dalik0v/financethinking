@@ -67,7 +67,7 @@ export default function CreateGoal() {
         <h1 className="text-xl font-bold tracking-tight">Create Goal</h1>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 pt-6 space-y-6 pb-32">
+      <main className="flex-1 overflow-y-auto px-6 pt-6 space-y-6 pb-52">
         <div className="space-y-3">
           <label className="text-xs font-bold text-muted uppercase tracking-[2px]">Goal Name</label>
           <div className="relative">

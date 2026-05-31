@@ -234,8 +234,8 @@ export default function AnalyticsPage() {
   const { totalIncome, totalExpense } = useMemo(() => {
     const start = timeframeStartTs(timeframe);
     const filtered = transactions.filter((t) => new Date(t.date).getTime() >= start);
-    const totalIncome = filtered.filter((t) => t.type === 0).reduce((s, t) => s + t.amount, 0);
-    const totalExpense = filtered.filter((t) => t.type === 1).reduce((s, t) => s + t.amount, 0);
+    const totalIncome = filtered.filter((t) => t.type === 0 || (t.type as unknown as string) === "Income").reduce((s, t) => s + t.amount, 0);
+    const totalExpense = filtered.filter((t) => t.type === 1 || (t.type as unknown as string) === "Expense").reduce((s, t) => s + t.amount, 0);
     return { totalIncome, totalExpense };
   }, [transactions, timeframe]);
 
