@@ -72,35 +72,22 @@ npm run dev
 
 ## API Endpoints
 
-| Method   | Endpoint                     | Description          |
-| -------- | ---------------------------- | -------------------- |
-| `GET`    | `/transactions`              | Get all transactions |
-| `POST`   | `/transactions`              | Create transaction   |
-| `DELETE` | `/transactions/{id}`         | Delete transaction   |
-| `GET`    | `/card`                      | Get primary card     |
-| `GET`    | `/analytics/balance-history` | Balance chart data   |
-| `POST`   | `/ai`                        | AI financial advisor |
+<table>
+  <tr>
+    <td valign="top" align="center" style="padding: 10px;">
+      <img src="first_api.png" alt="System API documentation first part" width="500px" />
+    </td>
+    <td valign="top" align="center" style="padding: 10px;">
+      <img src="second_api.png" alt="System API documentation second part" width="500px" />
+    </td>
+  </tr>
+</table>
+
+<p align="center">
+  <em>System API documentation with Swagger implementation</em>
+</p>
 
 Full docs available at `/swagger`
-
----
-
-## Project Structure
-
-```
-financethinking/
-├── AIProject/                 # ASP.NET Core backend
-│   ├── Controllers/           # API endpoints
-│   ├── Domain/                # EF Core entities
-│   ├── Services/              # AI service layer
-│   ├── Data/                  # DbContext
-│   └── appsettings.json       # Configuration
-├── src/                       # Next.js frontend
-│   ├── app/                   # Pages (App Router)
-│   ├── components/            # React components
-│   └── lib/                   # API helper
-└── README.md
-```
 
 <div align="center">
 
